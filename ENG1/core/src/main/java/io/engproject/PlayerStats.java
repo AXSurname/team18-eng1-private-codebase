@@ -1,11 +1,11 @@
 package io.engproject;
 
-public class GameStatistics 
+public class PlayerStats 
 {
     private int itemsUsed;
     private int eventsTriggered;
 
-    public GameStatistics() 
+    public PlayerStats() 
     {
         this.itemsUsed = 0;
         this.eventsTriggered = 0;

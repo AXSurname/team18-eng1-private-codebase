@@ -2,9 +2,15 @@ package io.engproject;
 
 public abstract class Item {
 
-    public final void Use()
+    protected Player player;
+
+    public Item(Player player) {
+        this.player = player;
+    }
+
+    public final void use()
     {
-        if (CanUse() == true)
+        if (canUse() == true)
         {
             applyEffect();
             consume();
@@ -13,10 +19,13 @@ public abstract class Item {
 
     protected abstract String getName();
 
-    protected abstract boolean CanUse();
+    protected abstract boolean canUse();
 
     protected abstract void applyEffect();
 
     protected abstract void consume();
+
+    protected abstract void incrementItemsUsed();
+
 
 }

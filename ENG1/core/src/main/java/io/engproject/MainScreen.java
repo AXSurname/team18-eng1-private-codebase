@@ -107,6 +107,11 @@ public class MainScreen extends ScreenAdapter {
         } else {
             player.setRecievedInput(false);
         }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            var energyDrink = new EnergyDrinkItem(player);
+            energyDrink.use();
+        }
     }
 
     @Override

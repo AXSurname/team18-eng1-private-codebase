@@ -11,8 +11,11 @@ public class Player extends GameObject {
     private static final float SCALE = 1/32f;
     private static final int LIFE = 5;
     private static final float SPEED = 2f;
+    private static final float BOOSTED_SPEED = 4f;
+    private static final float BOOST_DURATION = 5f;
     private static final float INTERACT_COOLDOWN = 1.3f;
     
+    private final PlayerStats stats = new PlayerStats();
     private final Viewport viewport;
     private final Vector2 moveDirection = new Vector2();
     private final Vector2 lastDirection = new Vector2(1, 0);
@@ -21,6 +24,8 @@ public class Player extends GameObject {
     private boolean recievedInput = false;
     private final Array<Interaction> interactions = new Array<>();
     private final Animation<Texture> interactAnimation;
+    private float boostTimer;
+
 
     public Player(float x, float y, Viewport viewport, Texture texture, Animation<Texture> interactAnimation) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
@@ -45,6 +50,7 @@ public class Player extends GameObject {
     }
 
     public void reset(float x, float y) {
+        boostTimer = 0f;
         rect.setPosition(x, y);
         life = LIFE;
         recievedInput = false;
@@ -54,6 +60,7 @@ public class Player extends GameObject {
 
     @Override
     void update(float dt) {
+        boostTimer = Math.max(0f, boostTimer - dt);
         if (canInteract(dt) && recievedInput) {
             var playerCentre = getCentre(TMP_VEC2);
             interactions.add(new Interaction(playerCentre, lastDirection, interactAnimation));
@@ -88,13 +95,23 @@ public class Player extends GameObject {
     }
 
     private void move(float dt) {
+
+        float newX;
+        float newY;
+
         if (moveDirection.isZero()) {
             return;
         }
 
-        float newX = rect.getX() + moveDirection.x * SPEED * dt;
-        float newY = rect.getY() + moveDirection.y * SPEED * dt;
-
+        if (boostTimer > 0f) {
+             newX = rect.getX() + moveDirection.x * BOOSTED_SPEED * dt;
+             newY = rect.getY() + moveDirection.y * BOOSTED_SPEED * dt;
+        } 
+        else 
+        {
+            newX = rect.getX() + moveDirection.x * SPEED * dt;
+            newY = rect.getY() + moveDirection.y * SPEED * dt;
+        }
         newX = MathUtils.clamp(newX, 0, viewport.getWorldWidth() - rect.getWidth());
         newY = MathUtils.clamp(newY, 0, viewport.getWorldHeight() - rect.getHeight());
 
@@ -111,5 +128,10 @@ public class Player extends GameObject {
 
     public void subLife(float amount) {
         this.life -= amount;
+    }
+ 
+    public void activateBoost() {
+        boostTimer = BOOST_DURATION;
+        stats.incrementItemsUsed();;
     }
 }
