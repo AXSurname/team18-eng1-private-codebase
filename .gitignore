@@ -1,5 +1,13 @@
+# Gradle build directories and cache
+.gradle/
+build/
+/*/build/
+
 # Compiled class file
 *.class
+
+# Local configuration (contains local SDK paths)
+local.properties
 
 # Log file
 *.log
