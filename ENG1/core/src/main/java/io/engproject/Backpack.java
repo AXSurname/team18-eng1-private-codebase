@@ -84,12 +84,12 @@ public class Backpack extends GameObject {
         return Optional.of(items.removeIndex(slot));
     }
 
-    /** Removes and returns the item in the currently selected slot, if any. */
+    // Removes and returns the item in the currently selected slot, if any.
     public Optional<Item> removeSelectedItem() {
         return removeItem(selectedSlot);
     }
 
-    /** Returns the item in the given slot, if any. */
+    // Returns the item in the given slot, if any.
     public Optional<Item> getItem(int slot) {
         if (slot < 0 || slot >= items.size) {
             return Optional.empty();
@@ -97,7 +97,7 @@ public class Backpack extends GameObject {
         return Optional.of(items.get(slot));
     }
 
-    /** Returns the item in the currently selected slot. */
+    // Returns the item in the currently selected slot.
     public Optional<Item> getSelectedItem() {
         return getItem(selectedSlot);
     }
@@ -138,7 +138,7 @@ public class Backpack extends GameObject {
         selectedSlot = 0;
     }
 
-    /** Polls the number keys 1-5 to change the selected slot. */
+    // Polls the number keys 1-5 to change the selected slot.
     @Override
     public void update(float deltaTime) {
         for (int slot = 0; slot < MAX_SLOTS; slot++) {
@@ -148,7 +148,7 @@ public class Backpack extends GameObject {
         }
     }
 
-    /** Draws the bag icon, then every slot with its item. */
+    // Draws the bag icon, then every slot with its item.
     @Override
     public void draw(Batch batch) {
         super.draw(batch);
