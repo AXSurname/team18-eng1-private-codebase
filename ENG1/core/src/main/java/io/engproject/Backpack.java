@@ -14,10 +14,10 @@ import java.util.Optional;
 /**
  * A backpack that holds up to {@value #MAX_SLOTS} items.
  *
- * <p>The backpack is a {@link GameObject}: its own rectangle and texture draw the bag icon,
- * and a row of slots is drawn beside it. Keys 1-5 select a slot.</p>
+ * The backpack is a {@link GameObject}: its own rectangle and texture draw the bag icon,
+ * and a row of slots is drawn beside it. Keys 1-5 select a slot.
  *
- * <p>Textures are owned by the screen that created them, not by this class.</p>
+ * Textures are owned by the screen that created them, not by this class.
  */
 public class Backpack extends GameObject {
 
