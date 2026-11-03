@@ -46,6 +46,7 @@ public class MainScreen extends ScreenAdapter {
 
     private float timer;
     private float gooseSpawnTimer;
+    private final GameTimer gameTimer = new GameTimer(); 
 
     public MainScreen(GameManager gm) {
         this.gm = gm;
@@ -82,6 +83,7 @@ public class MainScreen extends ScreenAdapter {
 
         timer = 0f;
         gooseSpawnTimer = 0f;
+        gameTimer.reset();
     }
 
     private void processInput() {
@@ -116,10 +118,15 @@ public class MainScreen extends ScreenAdapter {
 
     @Override
 	public void render(float dt) {
-        if (player.isAlive()) {
-            processInput();
-            updateLogic(dt);
-            checkCollision(dt);
+        if (player.isAlive() && !gameTimer.isFinished()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                gameTimer.togglePause();
+            }
+            if (!gameTimer.isPaused()) {
+                processInput();
+                updateLogic(dt);
+                checkCollision(dt);
+            }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             resetGame();
         }
@@ -179,12 +186,28 @@ public class MainScreen extends ScreenAdapter {
         batch.setProjectionMatrix(uiViewport.getCamera().combined);
         batch.begin();
         font.draw(batch, "Life: " + String.format("%.1f", player.getLife()), 40f, uiViewport.getWorldHeight() - 40);
+        font.draw(batch, "Time:" + gameTimer.getFormattedTime(), 40f, uiViewport.getWorldHeight() - 80);
 
         if (!player.isAlive()) {
             gameoverLayout.setText(font, "GAME OVER\nPress R to Restart");
             float gameoverX = uiViewport.getWorldWidth()/2 - gameoverLayout.width/2;
             float gameoverY = uiViewport.getWorldHeight()/2 - gameoverLayout.height/2;
             font.draw(batch, gameoverLayout, gameoverX, gameoverY);
+        }
+
+        if (player,isAlive()) {
+            String message = null;
+            if (gameTimer.isFinished()) {
+                message = "YOU SURVIVED!\nPress R to Restart";
+            } else if (gameTimer.isPaused()) {
+                message = "PAUSED\nPres ESC to play"; 
+            }
+            if (message != null) {
+                gameoverLayout.setText(font, message);
+                float messageX = uiViewport.getWorldWidth()/2 - gameoverLayout.width/2;
+                float messageY= uiViewport.getWorldHeight()/2 - gameoverLayout.height/2;
+                font.draw(batch, gameoverLayout, messageX, messageY);
+            }
         }
 
         batch.end();
@@ -194,6 +217,7 @@ public class MainScreen extends ScreenAdapter {
         player.update(dt);
 
         timer += dt;
+        gameTimer.update(dt);
         gooseSpawnTimer += dt;
 
         if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL) {
