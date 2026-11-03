@@ -1,1 +1,6 @@
-libgdx.png
+bkgnd.png
+font/Info.txt
+font/Matcha Style.otf
+font/Matcha Style.ttf
+goose.png
+player.png
