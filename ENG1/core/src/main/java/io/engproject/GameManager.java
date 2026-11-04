@@ -8,22 +8,41 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 
+/**
+ * The 'startup' class. It is the first class instantiated (by the LwjglLauncher) which
+ * acts as the entry point to all other class instantiation. Has no constructor as
+ * Game.create() is used instead.
+ */
 public class GameManager extends Game {
+    private static final String FONT_PATH = "font/Matcha Style.ttf";
+    private static final Color FONT_COLOR = Color.SKY;
+    private static final int FONT_SIZE = 40;
+
     private Batch batch;
     private BitmapFont font;
     
+    /**    (non-Javadoc)
+     * Creates the batch, font, and sets the TutorialScreen.
+     * @see com.badlogic.gdx.ApplicationListener#create()
+     */
     @Override
     public void create() {
         batch = new SpriteBatch();
-
-        var fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("font/Matcha Style.ttf"));
-        var fontParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        fontParams.size = 24;
-        fontParams.color = Color.CORAL;
-        font = fontGenerator.generateFont(fontParams);
-        fontGenerator.dispose();
+        createFont();
 
         setScreen(new TutorialScreen(this));
+    }
+
+    /** Instantiates GameManager.font */
+    private void createFont() {
+        var fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(FONT_PATH));
+        var fontParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
+
+        fontParams.size = FONT_SIZE;
+        fontParams.color = FONT_COLOR;
+
+        this.font = fontGenerator.generateFont(fontParams);
+        fontGenerator.dispose();
     }
 
     public Batch getBatch() {
@@ -34,6 +53,7 @@ public class GameManager extends Game {
         return font;
     }
 
+    // Does not dispose TutorialScreen as it disposes itself.
     @Override
     public void dispose() {
         super.dispose();

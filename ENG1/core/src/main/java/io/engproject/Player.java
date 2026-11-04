@@ -19,6 +19,7 @@ public class Player extends GameObject {
     private final Viewport viewport;
     private final Vector2 moveDirection = new Vector2();
     private final Vector2 lastDirection = new Vector2(1, 0);
+    private Vector2 origin;
     private float life = LIFE;
     private float interactTimer;
     private boolean recievedInput = false;
@@ -26,15 +27,19 @@ public class Player extends GameObject {
     private final Animation<Texture> interactAnimation;
     private float boostTimer;
 
-
     public Player(float x, float y, Viewport viewport, Texture texture, Animation<Texture> interactAnimation) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.viewport = viewport;
         this.interactAnimation = interactAnimation;
+        this.origin = new Vector2(x, y);
     }
 
     public float getLife() {
         return Math.max(life, 0f);
+    }
+
+    public Vector2 getResetPos() {
+        return origin;
     }
 
     public Array<Interaction> getInteractions() {
@@ -49,11 +54,11 @@ public class Player extends GameObject {
         this.recievedInput = bool;
     }
 
-    public void reset(float x, float y) {
-        boostTimer = 0f;
-        rect.setPosition(x, y);
+    public void reset(Vector2 pos) {
+        rect.setPosition(pos);
         life = LIFE;
         recievedInput = false;
+        boostTimer = 0f;
         interactTimer = 0f;
         interactions.clear();
     }
@@ -61,6 +66,7 @@ public class Player extends GameObject {
     @Override
     void update(float dt) {
         boostTimer = Math.max(0f, boostTimer - dt);
+        
         if (canInteract(dt) && recievedInput) {
             var playerCentre = getCentre(TMP_VEC2);
             interactions.add(new Interaction(playerCentre, lastDirection, interactAnimation));
@@ -95,7 +101,6 @@ public class Player extends GameObject {
     }
 
     private void move(float dt) {
-
         float newX;
         float newY;
 
@@ -129,7 +134,7 @@ public class Player extends GameObject {
     public void subLife(float amount) {
         this.life -= amount;
     }
- 
+
     public void activateBoost() {
         boostTimer = BOOST_DURATION;
         stats.incrementItemsUsed();;

@@ -33,8 +33,6 @@ public abstract class GameObject {
     }
 
     public Vector2 getCentre(Vector2 objVector2) {
-        //ObjVector2.set(rect.x + rect.width/2, rect.y + rect.height/2);
-        //return ObjVector2;
         return this.rect.getCenter(objVector2);
     }
 
