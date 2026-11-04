@@ -121,6 +121,11 @@ public class GameScreen extends ScreenAdapter {
      */
     @Override
     public void render(float dt) {
+        // Enables high contrast mode with H
+        if (Gdx.input.isKeyJustPressed(Input.Keys.H)) {
+            AccessibilitySettings.toggleHighContrast();
+        }
+
         // Calls to input and logic
         if (player.isAlive()) {
             getInput();
@@ -171,26 +176,40 @@ public class GameScreen extends ScreenAdapter {
      * and inventory.
      */
     private void draw() {
+        boolean highContrast = AccessibilitySettings.isHighContrast();
+
         ScreenUtils.clear(Color.BLACK);
 
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
+        if (highContrast) {
+            batch.setColor(new Color(0.25f, 0.25f, 0.25f, 1f));
+        } else {
+            batch.setColor(Color.WHITE);
+        }
+           
         drawBackground();
+        batch.setColor(Color.WHITE);
 
         for (Goose goose : geese) {
+            batch.setColor(highContrast ? Color.PINK : Color.WHITE);
             goose.draw(batch);
         }
 
+        batch.setColor(highContrast ? Color.YELLOW : Color.WHITE);
         player.draw(batch);
 
+        batch.setColor(Color.WHITE);
         drawItems();
 
         for (Interaction interaction : player.getInteractions()) {
+             batch.setColor(highContrast ? Color.CYAN : Color.WHITE);
             interaction.draw(batch);
         }
 
+         batch.setColor(Color.WHITE);
         drawInventory();
 
         batch.end();
