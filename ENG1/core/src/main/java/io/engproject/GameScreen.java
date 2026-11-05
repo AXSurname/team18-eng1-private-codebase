@@ -212,6 +212,14 @@ public class GameScreen extends ScreenAdapter {
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
 
+        // Draw text that displays number of items used.
+        String itemsText = "Items used: " + player.getItemsUsed();
+        font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
+
+        // Draw text that displays number of events triggered.
+        String eventsText = "Events triggered: " + player.getEventsTriggered();
+        font.draw(batch, eventsText, 40f, uiViewport.getWorldHeight() - 120);
+
         // Display game over text if player is dead
         if (!player.isAlive()) {
             String gameoverText = "GAME OVER!\nPress R to Restart";

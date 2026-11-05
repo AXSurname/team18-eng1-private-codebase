@@ -38,6 +38,14 @@ public class Player extends GameObject {
         return Math.max(life, 0f);
     }
 
+    public int getItemsUsed() {
+        return stats.getItemsUsed();
+    }
+
+    public int getEventsTriggered() {
+        return stats.getEventsTriggered();
+    }
+
     public Vector2 getResetPos() {
         return origin;
     }
@@ -61,6 +69,7 @@ public class Player extends GameObject {
         boostTimer = 0f;
         interactTimer = 0f;
         interactions.clear();
+        stats.reset();
     }
 
     @Override
@@ -138,5 +147,13 @@ public class Player extends GameObject {
     public void activateBoost() {
         boostTimer = BOOST_DURATION;
         stats.incrementItemsUsed();;
+    }
+
+    public void eventTriggered() {
+        stats.incrementEventsTriggered();
+    }
+
+    public void itemUsed() {
+        stats.incrementItemsUsed();
     }
 }

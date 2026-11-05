@@ -89,14 +89,16 @@ public class LogicManager {
     }
 
     // To be implemented as needed
-    private void startEvent() {
+    private void startEvent() 
+    {
         if (!bossSpawned && timer >= BOSS_SPAWN_TIME) {
             bossSpawned = true;
-            
+            player.eventTriggered();
             geese.add(game.getBossGoose());
             for (int i = 0; i < 6; i++) {
                 geese.add(game.getGoose());
             }
+
         }
     }
     
