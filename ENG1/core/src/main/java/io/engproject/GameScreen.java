@@ -101,6 +101,14 @@ public class GameScreen extends ScreenAdapter {
     protected Goose getGoose() {
         return Goose.spawn(viewport, gooseTexture, player);
     }
+    
+    /**
+     * Spawns a BossGoose outside the map and returns it.
+     * @return a boss goose that now exists in the game world.
+     */
+    protected BossGoose getBossGoose() {
+        return BossGoose.spawn(viewport, gooseTexture, player);
+    }
 
     // Updates both viewports' window size if configuration.setResizable() is changed to true.
     @Override
