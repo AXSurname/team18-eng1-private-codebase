@@ -11,21 +11,33 @@ public class Player extends GameObject {
     private static final float SCALE = 1/32f;
     private static final int LIFE = 5;
     private static final float SPEED = 2f;
+    private static final float INTERACT_COOLDOWN = 1.3f;
+
+    // EnergyDrinkItem constants
     private static final float BOOSTED_SPEED = 4f;
     private static final float BOOST_DURATION = 5f;
-    private static final float INTERACT_COOLDOWN = 1.3f;
+
+    // Goose drag multipliers
+    private static final float SLOW_PER_GOOSE = 0.8f;     // Multiply speed per touching Goose
+    private static final float MIN_SPEED_MODIFIER = 0.3f; // Never slower than 30% speed
     
-    private final PlayerStats stats = new PlayerStats();
+    // General
     private final Viewport viewport;
-    private final Vector2 moveDirection = new Vector2();
-    private final Vector2 lastDirection = new Vector2(1, 0);
+
     private Vector2 origin;
+    private final Vector2 moveDirection = new Vector2();
+    private final Vector2 lastDirection = new Vector2(1, 0); // Facing; default is right
+
+    private float boostTimer;
+    private float speedModifier = 1f;
     private float life = LIFE;
+    private final PlayerStats stats = new PlayerStats();
+    
+    // Interaction variables
     private float interactTimer;
     private boolean recievedInput = false;
     private final Array<Interaction> interactions = new Array<>();
     private final Animation<Texture> interactAnimation;
-    private float boostTimer;
 
     public Player(float x, float y, Viewport viewport, Texture texture, Animation<Texture> interactAnimation) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
@@ -46,6 +58,10 @@ public class Player extends GameObject {
         return interactions;
     }
 
+    public float getSpeedModifier() {
+        return speedModifier;
+    }
+
     public boolean isAlive() {
         return life > 0f;
     }
@@ -58,6 +74,7 @@ public class Player extends GameObject {
         rect.setPosition(pos);
         life = LIFE;
         recievedInput = false;
+        speedModifier = 0f;
         boostTimer = 0f;
         interactTimer = 0f;
         interactions.clear();
@@ -65,8 +82,10 @@ public class Player extends GameObject {
 
     @Override
     void update(float dt) {
+        // Count down the energy drink boost
         boostTimer = Math.max(0f, boostTimer - dt);
         
+        // Create new interaction if appropriate
         if (canInteract(dt) && recievedInput) {
             var playerCentre = getCentre(TMP_VEC2);
             interactions.add(new Interaction(playerCentre, lastDirection, interactAnimation));
@@ -87,6 +106,7 @@ public class Player extends GameObject {
             }
         }
 
+        // Move player
         move(dt);
     }
 
@@ -101,22 +121,15 @@ public class Player extends GameObject {
     }
 
     private void move(float dt) {
-        float newX;
-        float newY;
-
         if (moveDirection.isZero()) {
             return;
         }
 
-        if (boostTimer > 0f) {
-             newX = rect.getX() + moveDirection.x * BOOSTED_SPEED * dt;
-             newY = rect.getY() + moveDirection.y * BOOSTED_SPEED * dt;
-        } 
-        else 
-        {
-            newX = rect.getX() + moveDirection.x * SPEED * dt;
-            newY = rect.getY() + moveDirection.y * SPEED * dt;
-        }
+        float speed = (boostTimer > 0f ? BOOSTED_SPEED : SPEED) * speedModifier;
+        float newX = rect.getX() + moveDirection.x * speed * dt;
+        float newY = rect.getY() + moveDirection.y * speed * dt;
+
+        // Clamp to screen bounds
         newX = MathUtils.clamp(newX, 0, viewport.getWorldWidth() - rect.getWidth());
         newY = MathUtils.clamp(newY, 0, viewport.getWorldHeight() - rect.getHeight());
 
@@ -131,10 +144,16 @@ public class Player extends GameObject {
         moveDirection.set(direction);
     }
 
+    // Called every frame with the number of geese overlapping the player
+    public void setGeeseTouching(int count) {
+        speedModifier = Math.max(MIN_SPEED_MODIFIER, (float) Math.pow(SLOW_PER_GOOSE, count));
+    }
+
     public void subLife(float amount) {
         this.life -= amount;
     }
 
+    // Called by EnergyDrinkItem: double speed for 5 seconds
     public void activateBoost() {
         boostTimer = BOOST_DURATION;
         stats.incrementItemsUsed();;

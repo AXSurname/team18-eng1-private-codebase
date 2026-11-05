@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 /**
  * The 'startup' class. It is the first class instantiated (by the LwjglLauncher) which
@@ -18,6 +19,7 @@ public class GameManager extends Game {
     private static final Color FONT_COLOR = Color.SKY;
     private static final int FONT_SIZE = 40;
 
+    private ShapeRenderer shapeRenderer;
     private Batch batch;
     private BitmapFont font;
     
@@ -27,6 +29,7 @@ public class GameManager extends Game {
      */
     @Override
     public void create() {
+        shapeRenderer = new ShapeRenderer();
         batch = new SpriteBatch();
         createFont();
 
@@ -44,6 +47,10 @@ public class GameManager extends Game {
         this.font = fontGenerator.generateFont(fontParams);
         fontGenerator.dispose();
     }
+    
+    public ShapeRenderer getShapeRenderer() {
+        return shapeRenderer;
+    }
 
     public Batch getBatch() {
         return batch;
@@ -53,10 +60,11 @@ public class GameManager extends Game {
         return font;
     }
 
-    // Does not dispose TutorialScreen as it disposes itself.
+    // Does not dispose TutorialScreen (as it disposes itself).
     @Override
     public void dispose() {
         super.dispose();
+        shapeRenderer.dispose();
         batch.dispose();
         font.dispose();
     }

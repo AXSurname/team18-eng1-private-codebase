@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class Goose extends GameObject {
     private static final float SCALE = 1/32f;
     private static final float SPEED = 1.5f;
+    
     private final Player player;
 
     public Goose(float x, float y, Texture texture, Player player) {
@@ -20,6 +21,7 @@ public class Goose extends GameObject {
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
         Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
 
+        // Move towards player centre
         rect.setPosition(rect.getX() + direction.x, rect.getY() + direction.y);
     }
 

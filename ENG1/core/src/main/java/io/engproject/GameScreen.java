@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -24,17 +25,24 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class GameScreen extends ScreenAdapter {
     private static final float WORLD_WIDTH = 16f;
     private static final float WORLD_HEIGHT = 9f;
+    private static final boolean DRAW_DEBUG = false;
 
+    // Asset filenames
     private static final String BKGND_FILENAME = "bkgnd.png";
     private static final String PLAYER_FILENAME = "player.png";
     private static final String GOOSE_FILENAME = "goose.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
 
+    // General
+    private final ShapeRenderer shapeRenderer;
     private final Batch batch;
-    
     private final BitmapFont font;
     private final GlyphLayout gameoverLayout = new GlyphLayout();
 
+    private final Viewport viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
+    private final Viewport uiViewport = new ScreenViewport();
+
+    // Assets
     private final Texture bkgndTexture = new Texture(Gdx.files.internal(BKGND_FILENAME));
     private final Texture playerTexture = new Texture(Gdx.files.internal(PLAYER_FILENAME));
     private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
@@ -42,16 +50,17 @@ public class GameScreen extends ScreenAdapter {
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
-    private final Viewport viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
-    private final Viewport uiViewport = new ScreenViewport();
-
+    // Player and geese
+    private final Player player = new Player(
+        WORLD_WIDTH/2f, WORLD_HEIGHT/2f,    // Spawn position
+        viewport,                           // Movement boundries
+        playerTexture,                      // Graphics
+        interactAnimation);
     private final Vector2 inputMovement = new Vector2();
-    private final Player player = new Player(WORLD_WIDTH/2f, WORLD_HEIGHT/2f,
-                                             viewport,
-                                             playerTexture,
-                                             interactAnimation);
+
     private final Array<Goose> geese = new Array<>();
 
+    // Manager classes
     private final GameManager gm;
     private final LogicManager lm;
 
@@ -62,6 +71,7 @@ public class GameScreen extends ScreenAdapter {
      */
     public GameScreen(GameManager gm) {
         this.gm = gm;
+        this.shapeRenderer = gm.getShapeRenderer();
         this.batch = gm.getBatch();
         this.font = gm.getFont();
         this.lm = new LogicManager(this);
@@ -173,6 +183,7 @@ public class GameScreen extends ScreenAdapter {
     private void draw() {
         ScreenUtils.clear(Color.BLACK);
 
+        // Render textures
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
@@ -219,12 +230,17 @@ public class GameScreen extends ScreenAdapter {
         }
 
         batch.end();
+
+        // Debugging
+        drawDebug();
     }
 
     private void drawBackground() {
+        // Calculate how many times the texture fits into the world dimensions
         float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
         float v2 = viewport.getWorldHeight() / WORLD_HEIGHT;
 
+        // Draw with custom (u, v) coordinates to correctly repeat the texture
         batch.draw(bkgndTexture,
             0, 0,
             viewport.getWorldWidth(), viewport.getWorldHeight(),
@@ -241,6 +257,24 @@ public class GameScreen extends ScreenAdapter {
     // To be implemented as needed
     private void drawItems() {
 
+    }
+
+    private void drawDebug() {
+        if (!DRAW_DEBUG) {
+            return;
+        }
+
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        // Draw player (blue)
+        player.drawDebug(shapeRenderer, Color.BLUE);
+
+        // Draw geese (red)
+        for (Goose goose : geese) {
+            goose.drawDebug(shapeRenderer, Color.RED);
+        }
+        shapeRenderer.end();
     }
 
     @Override

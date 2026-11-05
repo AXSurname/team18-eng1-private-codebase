@@ -1,7 +1,9 @@
 package io.engproject;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -19,7 +21,11 @@ public abstract class GameObject {
     public GameObject(float x, float y, float w, float h) {
         this(x, y, w, h, null);
     }
-
+    
+    public Vector2 getCentre(Vector2 objVector2) {
+        return this.rect.getCenter(objVector2);
+    }
+    
     public boolean overlaps(GameObject other) {
         return rect.overlaps(other.rect);
     }
@@ -32,8 +38,9 @@ public abstract class GameObject {
         batch.draw(texture, rect.x, rect.y, rect.width, rect.height);
     }
 
-    public Vector2 getCentre(Vector2 objVector2) {
-        return this.rect.getCenter(objVector2);
+    public void drawDebug(ShapeRenderer shapeRenderer, Color color) {
+        shapeRenderer.setColor(color);
+        shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
     }
 
     abstract void update(float dt);

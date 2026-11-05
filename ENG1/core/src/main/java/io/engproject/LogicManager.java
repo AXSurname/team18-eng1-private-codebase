@@ -79,6 +79,9 @@ public class LogicManager {
             }
         }
 
+        player.setGeeseTouching(hitNum);   // Modifies player speed
+                                            // (Each goose touching slows player)
+
         if (hitNum > 0) {
             player.subLife(DAMAGE_PER_SEC * hitNum * dt);
         }
@@ -113,7 +116,7 @@ public class LogicManager {
 
         checkCollision(dt);
 
-        // Put startEvent() and spawnItem() implementation here
+        // Put startEvent() and spawnItem() methods here
     }
 
 }
