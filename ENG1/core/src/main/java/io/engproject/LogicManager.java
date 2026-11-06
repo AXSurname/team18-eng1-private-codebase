@@ -10,11 +10,15 @@ public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
     private static final float DAMAGE_PER_SEC = 1f;
 
+    private static final float BOSS_SPAWN_TIME = 5f;
+    private boolean bossSpawned = false;
+
     private float timer;
     private float gooseSpawnTimer;
 
     private final Player player;
     private final Array<Goose> geese;
+    private final Array<Puddle> puddles;
 
     private GameScreen game;
 
@@ -27,6 +31,7 @@ public class LogicManager {
         this.game = gameScreen;
         this.player = game.getPlayer();
         this.geese = game.getGeese();
+        this.puddles = game.getPuddles();
     }
 
     /**
@@ -37,6 +42,7 @@ public class LogicManager {
         player.reset(player.getResetPos());
         geese.clear();
 
+        bossSpawned = false;
         timer = 0f;
         gooseSpawnTimer = 0f;
     }
@@ -85,12 +91,38 @@ public class LogicManager {
         if (hitNum > 0) {
             player.subLife(DAMAGE_PER_SEC * hitNum * dt);
         }
+
+        for (Puddle puddle : puddles) {
+            boolean playerOverlapsPuddle = player.overlaps(puddle);
+
+            if (playerOverlapsPuddle && !puddle.isPlayerInside()) {
+                player.eventTriggered();
+            }
+
+            puddle.setPlayerInside(playerOverlapsPuddle);
+        }
     }
 
     // To be implemented as needed
-    private void startEvent() {
+    private void startEvent() 
+    {
+        if (!bossSpawned && timer >= BOSS_SPAWN_TIME) {
+            bossSpawned = true;
+            player.eventTriggered();
+            geese.add(game.getBossGoose());
+            for (int i = 0; i < 6; i++) {
+                geese.add(game.getGoose());
+            }
+        }
 
+        player.applySpeedModifier(1f);
+        for (Puddle puddle : puddles) {
+            if (player.overlaps(puddle)) {
+                player.applySpeedModifier(puddle.getSpeedModifier());
+            }
+        }
     }
+    
 
     // To be implemented as needed
     private void spawnItem() {
@@ -106,9 +138,12 @@ public class LogicManager {
         timer += dt;
         gooseSpawnTimer += dt;
 
+
+
         player.update(dt);
 
         spawnGoose();
+        startEvent();
 
         for (Goose goose : geese) {
             goose.update(dt);
