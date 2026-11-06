@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/** The player avatar which the user contols, and is moved around the map to evade geese. */
 public class Player extends GameObject {
     private static final float SCALE = 1/32f;
     private static final int LIFE = 5;
@@ -39,7 +40,18 @@ public class Player extends GameObject {
     private final Array<Interaction> interactions = new Array<>();
     private final Animation<Texture> interactAnimation;
 
-    public Player(float x, float y, Viewport viewport, Texture texture, Animation<Texture> interactAnimation) {
+    /**
+     * Creates a player avatar for the user to control.
+     * 
+     * @param x        the initial x-position of the player
+     * @param y        the initial y-position of the player
+     * @param viewport the current screen's viewport
+     * @param texture  the image representing the player
+     * @param interactAnimation
+     * the animation frames for the player's possible interaction with the geese.
+     */
+    public Player(float x, float y, Viewport viewport,
+                  Texture texture, Animation<Texture> interactAnimation) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.viewport = viewport;
         this.interactAnimation = interactAnimation;
@@ -70,6 +82,10 @@ public class Player extends GameObject {
         this.recievedInput = bool;
     }
 
+    /**
+     * Resets the player state, including its position, life points and any modifiers.
+     * @param pos
+     */
     public void reset(Vector2 pos) {
         rect.setPosition(pos);
         life = LIFE;
@@ -80,6 +96,11 @@ public class Player extends GameObject {
         interactions.clear();
     }
 
+    /**
+     * Updates the player state, such as its position, interactions and modifiers.
+     * 
+     * @param dt deltatime
+     */
     @Override
     void update(float dt) {
         // Count down the energy drink boost
@@ -110,6 +131,7 @@ public class Player extends GameObject {
         move(dt);
     }
 
+    // Returns whether the player has triggered an interaction too recently.
     private boolean canInteract(float dt) {
         interactTimer -= dt;
 
@@ -120,6 +142,11 @@ public class Player extends GameObject {
         return false;
     }
 
+    /**
+     * Moves the player by calculating its speed, direction and position.
+     * 
+     * @param dt deltatime
+     */
     private void move(float dt) {
         if (moveDirection.isZero()) {
             return;
@@ -136,6 +163,11 @@ public class Player extends GameObject {
         rect.setPosition(newX, newY);
     }
 
+    /**
+     * Changes the direction the player is moving toward. The player therefore faces
+     * this direction.
+     * @param direction the new direction the player faces
+     */
     public void changeDirection(Vector2 direction) {
         if (!direction.isZero()) {
             lastDirection.set(direction);

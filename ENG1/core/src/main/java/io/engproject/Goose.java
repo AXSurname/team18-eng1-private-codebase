@@ -5,17 +5,35 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+/** An enemy for the player to evade. */
 public class Goose extends GameObject {
     private static final float SCALE = 1/32f;
     private static final float SPEED = 1.5f;
     
     private final Player player;
 
+    /**
+     * Creates a Goose.
+     * 
+     * @param x       the initial x-position of the goose
+     * @param y       the initial y-position of the goose
+     * @param texture the image representing the goose which is displayed
+     * @param player  the target the goose moves towards
+     */
     public Goose(float x, float y, Texture texture, Player player) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.player = player;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * Updates the goose's movement.
+     * 
+     * @param dt deltatime
+     */
     @Override
     public void update(float dt) {
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
@@ -25,7 +43,22 @@ public class Goose extends GameObject {
         rect.setPosition(rect.getX() + direction.x, rect.getY() + direction.y);
     }
 
+    /**
+     * Spawns the goose outside of the map's boundaries, which is determined by the viewport.
+     * 
+     * @param viewport the current screen's viewport
+     * @param texture  the image representing the goose
+     * @param player   the target the goose moves towards
+     * @return the spawned goose
+     */
     public static Goose spawn(Viewport viewport, Texture texture, Player player) {
+        float[] spawnPos = calcSpawn(viewport, texture);
+
+        return new Goose(spawnPos[0], spawnPos[1], texture, player);
+    }
+
+    // Helper method for spawn that calculates the position of the goose spawning.
+    protected static float[] calcSpawn(Viewport viewport, Texture texture) {
         int edge = MathUtils.random(0, 3);
         float x, y;
 
@@ -53,7 +86,7 @@ public class Goose extends GameObject {
                 x = -texture.getWidth() * SCALE;
                 y = MathUtils.random(0f, 1f) * viewport.getWorldHeight();
         }
-
-        return new Goose(x, y, texture, player);
+        
+        return new float[]{x, y};
     }
 }

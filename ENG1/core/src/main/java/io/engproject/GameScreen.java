@@ -25,7 +25,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class GameScreen extends ScreenAdapter {
     private static final float WORLD_WIDTH = 16f;
     private static final float WORLD_HEIGHT = 9f;
-    private static final boolean DRAW_DEBUG = false;
+    private static final boolean DRAW_DEBUG = false; // Manually set for debugging
 
     // Asset filenames
     private static final String BKGND_FILENAME = "bkgnd.png";
@@ -259,6 +259,7 @@ public class GameScreen extends ScreenAdapter {
 
     }
 
+    // A debugging method to draw objects without their textures.
     private void drawDebug() {
         if (!DRAW_DEBUG) {
             return;
