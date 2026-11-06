@@ -10,3 +10,4 @@ font/Matcha Style.ttf
 goose.png
 libgdx.png
 player.png
+puddle.png

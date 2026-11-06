@@ -26,6 +26,7 @@ public class Player extends GameObject {
     private final Array<Interaction> interactions = new Array<>();
     private final Animation<Texture> interactAnimation;
     private float boostTimer;
+    private float speedModifier = 1f;
 
     public Player(float x, float y, Viewport viewport, Texture texture, Animation<Texture> interactAnimation) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
@@ -70,11 +71,13 @@ public class Player extends GameObject {
         interactTimer = 0f;
         interactions.clear();
         stats.reset();
+        speedModifier = 1f;
     }
 
     @Override
     void update(float dt) {
         boostTimer = Math.max(0f, boostTimer - dt);
+
         
         if (canInteract(dt) && recievedInput) {
             var playerCentre = getCentre(TMP_VEC2);
@@ -118,13 +121,13 @@ public class Player extends GameObject {
         }
 
         if (boostTimer > 0f) {
-             newX = rect.getX() + moveDirection.x * BOOSTED_SPEED * dt;
-             newY = rect.getY() + moveDirection.y * BOOSTED_SPEED * dt;
+             newX = rect.getX() + moveDirection.x * BOOSTED_SPEED * speedModifier * dt;
+             newY = rect.getY() + moveDirection.y * BOOSTED_SPEED * speedModifier * dt;
         } 
         else 
         {
-            newX = rect.getX() + moveDirection.x * SPEED * dt;
-            newY = rect.getY() + moveDirection.y * SPEED * dt;
+            newX = rect.getX() + moveDirection.x * SPEED * speedModifier * dt;
+            newY = rect.getY() + moveDirection.y * SPEED * speedModifier * dt;
         }
         newX = MathUtils.clamp(newX, 0, viewport.getWorldWidth() - rect.getWidth());
         newY = MathUtils.clamp(newY, 0, viewport.getWorldHeight() - rect.getHeight());
@@ -147,6 +150,10 @@ public class Player extends GameObject {
     public void activateBoost() {
         boostTimer = BOOST_DURATION;
         stats.incrementItemsUsed();;
+    }
+
+    public void applySpeedModifier(float modifier) {
+        speedModifier = modifier;
     }
 
     public void eventTriggered() {

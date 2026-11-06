@@ -29,6 +29,7 @@ public class GameScreen extends ScreenAdapter {
     private static final String PLAYER_FILENAME = "player.png";
     private static final String GOOSE_FILENAME = "goose.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
+    private static final String PUDDLE_FILENAME = "puddle.png";
 
     private final Batch batch;
     
@@ -38,6 +39,7 @@ public class GameScreen extends ScreenAdapter {
     private final Texture bkgndTexture = new Texture(Gdx.files.internal(BKGND_FILENAME));
     private final Texture playerTexture = new Texture(Gdx.files.internal(PLAYER_FILENAME));
     private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
+    private final Texture puddleTexture = new Texture(Gdx.files.internal(PUDDLE_FILENAME));
 
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
@@ -51,6 +53,7 @@ public class GameScreen extends ScreenAdapter {
                                              playerTexture,
                                              interactAnimation);
     private final Array<Goose> geese = new Array<>();
+    private final Array<Puddle> puddles = new Array<>();
 
     private final GameManager gm;
     private final LogicManager lm;
@@ -67,6 +70,9 @@ public class GameScreen extends ScreenAdapter {
         this.lm = new LogicManager(this);
 
         bkgndTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+
+        puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
+        puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
     }
 
     /**
@@ -92,6 +98,10 @@ public class GameScreen extends ScreenAdapter {
 
     protected Array<Goose> getGeese() {
         return geese;
+    }
+
+    protected Array<Puddle> getPuddles() {
+        return puddles;
     }
 
     /**
@@ -187,6 +197,10 @@ public class GameScreen extends ScreenAdapter {
 
         drawBackground();
 
+        for (Puddle puddle : puddles) {
+            puddle.draw(batch);
+        }
+
         for (Goose goose : geese) {
             goose.draw(batch);
         }
@@ -267,6 +281,7 @@ public class GameScreen extends ScreenAdapter {
         batch.dispose();
         font.dispose();
         interactTextures.forEach(Texture::dispose);
+        puddleTexture.dispose();
     }
 
 }
