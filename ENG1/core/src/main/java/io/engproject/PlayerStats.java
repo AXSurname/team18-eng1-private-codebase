@@ -30,4 +30,10 @@ public class PlayerStats
     {
         return eventsTriggered;
     }
+
+    public void reset() 
+    {
+        itemsUsed = 0;
+        eventsTriggered = 0;
+    }
 }

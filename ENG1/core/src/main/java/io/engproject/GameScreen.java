@@ -32,6 +32,7 @@ public class GameScreen extends ScreenAdapter {
     private static final String PLAYER_FILENAME = "player.png";
     private static final String GOOSE_FILENAME = "goose.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
+    private static final String PUDDLE_FILENAME = "puddle.png";
 
     // General
     private final ShapeRenderer shapeRenderer;
@@ -46,6 +47,7 @@ public class GameScreen extends ScreenAdapter {
     private final Texture bkgndTexture = new Texture(Gdx.files.internal(BKGND_FILENAME));
     private final Texture playerTexture = new Texture(Gdx.files.internal(PLAYER_FILENAME));
     private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
+    private final Texture puddleTexture = new Texture(Gdx.files.internal(PUDDLE_FILENAME));
 
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
@@ -59,6 +61,7 @@ public class GameScreen extends ScreenAdapter {
     private final Vector2 inputMovement = new Vector2();
 
     private final Array<Goose> geese = new Array<>();
+    private final Array<Puddle> puddles = new Array<>();
 
     // Manager classes
     private final GameManager gm;
@@ -77,6 +80,9 @@ public class GameScreen extends ScreenAdapter {
         this.lm = new LogicManager(this);
 
         bkgndTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+
+        puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
+        puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
     }
 
     /**
@@ -104,12 +110,24 @@ public class GameScreen extends ScreenAdapter {
         return geese;
     }
 
+    protected Array<Puddle> getPuddles() {
+        return puddles;
+    }
+
     /**
      * Spawns a Goose outside the map and returns it.
      * @return a goose that now exists in the game world.
      */
     protected Goose getGoose() {
         return Goose.spawn(viewport, gooseTexture, player);
+    }
+    
+    /**
+     * Spawns a BossGoose outside the map and returns it.
+     * @return a boss goose that now exists in the game world.
+     */
+    protected BossGoose getBossGoose() {
+        return BossGoose.spawn(viewport, gooseTexture, player);
     }
 
     // Updates both viewports' window size if configuration.setResizable() is changed to true.
@@ -190,6 +208,10 @@ public class GameScreen extends ScreenAdapter {
 
         drawBackground();
 
+        for (Puddle puddle : puddles) {
+            puddle.draw(batch);
+        }
+
         for (Goose goose : geese) {
             goose.draw(batch);
         }
@@ -214,6 +236,14 @@ public class GameScreen extends ScreenAdapter {
         // Draw text that displays player life left
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
+
+        // Draw text that displays number of items used.
+        String itemsText = "Items used: " + player.getItemsUsed();
+        font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
+
+        // Draw text that displays number of events triggered.
+        String eventsText = "Events triggered: " + player.getEventsTriggered();
+        font.draw(batch, eventsText, 40f, uiViewport.getWorldHeight() - 120);
 
         // Display game over text if player is dead
         if (!player.isAlive()) {
@@ -286,6 +316,7 @@ public class GameScreen extends ScreenAdapter {
         batch.dispose();
         font.dispose();
         interactTextures.forEach(Texture::dispose);
+        puddleTexture.dispose();
     }
 
 }
