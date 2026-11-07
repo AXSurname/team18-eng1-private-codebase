@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class BossGoose extends Goose {
     private static final float SCALE = 1/16f;
-    private static final float SPEED = 1.0f;
+    private static final float SPEED = 0.5f;
 
     public BossGoose(float x, float y, Texture texture, Player player) {
         super(x, y, texture, player);
