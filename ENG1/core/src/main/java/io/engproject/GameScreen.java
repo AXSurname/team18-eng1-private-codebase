@@ -154,10 +154,16 @@ public class GameScreen extends ScreenAdapter {
             AccessibilitySettings.toggleHighContrast();
         }
 
-        // Calls to input and logic
-        if (player.isAlive()) {
-            getInput();
-            lm.update(dt);
+        // Calls to input and logic, unless paused (the game starts paused) or over
+        GameTimer gameTimer = lm.getGameTimer();
+        if (player.isAlive() && !gameTimer.isFinished()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                gameTimer.togglePause();
+            }
+            if (!gameTimer.isPaused()) {
+                getInput();
+                lm.update(dt);
+            }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             lm.resetGame();
         }
@@ -264,9 +270,23 @@ public class GameScreen extends ScreenAdapter {
         String eventsText = "Events triggered: " + player.getEventsTriggered();
         font.draw(batch, eventsText, 40f, uiViewport.getWorldHeight() - 120);
 
-        // Display game over text if player is dead
+        // Draw the time left (GameTimer)
+        GameTimer gameTimer = lm.getGameTimer();
+        String timeText = "Time left: " + gameTimer.getFormattedTime();
+        font.draw(batch, timeText, 40f, uiViewport.getWorldHeight() - 160);
+
+        // Centre message: game over, survived the 5 minutes, or paused
+        String centreText = null;
         if (!player.isAlive()) {
-            String gameoverText = "GAME OVER!\nPress R to Restart";
+            centreText = "GAME OVER!\nPress R to Restart";
+        } else if (gameTimer.isFinished()) {
+            centreText = "YOU SURVIVED!\nPress R to Restart";
+        } else if (gameTimer.isPaused()) {
+            centreText = "PAUSED\nPress ESC to play";
+        }
+
+        if (centreText != null) {
+            String gameoverText = centreText;
             float gameoverX;
             float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
 
