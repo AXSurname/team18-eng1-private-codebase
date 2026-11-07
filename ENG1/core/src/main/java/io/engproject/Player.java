@@ -142,7 +142,13 @@ public class Player extends GameObject {
         move(dt);
     }
 
-    // Returns whether the player has triggered an interaction too recently.
+    /**
+     * Checks if the player can interact by updating and
+     * checking the interaction cooldown timer.
+     *
+     * @param dt the amount of time passed from last frame
+     * @return true if the cooldown has expired, false otherwise
+     */
     private boolean canInteract(float dt) {
         interactTimer -= dt;
 
@@ -154,11 +160,13 @@ public class Player extends GameObject {
     }
 
     /**
-     * Moves the player by calculating its speed, direction and position.
-     * 
-     * @param dt deltatime
+     * Updates player's position based on their current move,
+     * direction and speed. Adds a speed boost and ensures
+     * player stays visible on the screen.
+     *
+     * @param dt the amount of time passed from last frame
      */
-        private void move(float dt) {
+    private void move(float dt) {
         if (moveDirection.isZero()) {
             return;
         }
