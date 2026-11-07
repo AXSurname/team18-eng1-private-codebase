@@ -16,6 +16,7 @@ public class LogicManager {
     private float timer;
     private float gooseSpawnTimer;
 
+    private final GameTimer gameTimer = new GameTimer();   // 5:00 countdown and pause state
     private final Player player;
     private final Array<Goose> geese;
     private final Array<Puddle> puddles;
@@ -33,6 +34,15 @@ public class LogicManager {
         this.geese = game.getGeese();
         this.puddles = game.getPuddles();
     }
+    
+    /**
+     * Returns the game timer, so GameScreen can pause it and display the time left.
+     *
+     * @return the 5 minute game timer
+     */
+    public GameTimer getGameTimer() {
+        return gameTimer;
+    }
 
     /**
      * Resets the game state so that geese are deleted, timers are reset, and both the player's
@@ -44,6 +54,7 @@ public class LogicManager {
 
         bossSpawned = false;
         timer = 0f;
+        gameTimer.reset();   // back to 5:00, paused        
         gooseSpawnTimer = 0f;
     }
 
@@ -135,6 +146,7 @@ public class LogicManager {
      * @param dt deltatime
      */
     public void update(float dt) {
+        gameTimer.update(dt);
         timer += dt;
         gooseSpawnTimer += dt;
 
