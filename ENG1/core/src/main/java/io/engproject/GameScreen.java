@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -33,7 +34,11 @@ public class GameScreen extends ScreenAdapter {
     private static final String GOOSE_FILENAME = "goose.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
     private static final String PUDDLE_FILENAME = "puddle.png";
+        private static final String ENERGY_DRINK_FILENAME = "energydrink.png";
 
+    // Backpack position in world units (bottom-left corner of the map)
+    private static final float BACKPACK_X = 0f;
+    private static final float BACKPACK_Y = 0.2f;
     // General
     private final ShapeRenderer shapeRenderer;
     private final Batch batch;
@@ -48,6 +53,11 @@ public class GameScreen extends ScreenAdapter {
     private final Texture playerTexture = new Texture(Gdx.files.internal(PLAYER_FILENAME));
     private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
     private final Texture puddleTexture = new Texture(Gdx.files.internal(PUDDLE_FILENAME));
+    private final Texture energyDrinkTexture = new Texture(Gdx.files.internal(ENERGY_DRINK_FILENAME));
+    private final Texture slotTexture = createSlotTexture();
+
+    // Inventory (no bag icon, so the slots start at BACKPACK_X)
+    private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
 
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
@@ -102,6 +112,37 @@ public class GameScreen extends ScreenAdapter {
         return textures;
     }
 
+
+        /**
+     * Creates the texture drawn behind each backpack slot: a translucent dark square
+     * with a light border. Made in code so no extra asset file is needed.
+     *
+     * @return the slot texture
+     */
+    private Texture createSlotTexture() {
+        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0f, 0f, 0f, 0.5f);
+        pixmap.fill();
+        pixmap.setColor(Color.WHITE);
+        pixmap.drawRectangle(0, 0, 32, 32);
+        pixmap.drawRectangle(1, 1, 30, 30);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    protected Backpack getBackpack() {
+        return backpack;
+    }
+
+    /**
+     * Creates a new energy drink for the player.
+     * @return an energy drink that uses this screen's icon texture
+     */
+    protected EnergyDrinkItem getEnergyDrink() {
+        return new EnergyDrinkItem(player, energyDrinkTexture);
+    }
     protected Player getPlayer() {
         return player;
     }
@@ -203,6 +244,12 @@ public class GameScreen extends ScreenAdapter {
         } else {
             player.setRecievedInput(false);
         }
+        
+        // Backpack: keys 1-5 select a slot, E uses the selected item
+        backpack.update(Gdx.graphics.getDeltaTime());
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            backpack.useSelectedItem();
+        }
     }
 
     /**
@@ -263,7 +310,7 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
 
         // Draw text that displays number of items used.
-        String itemsText = "Items used: " + player.getItemsUsed();
+        String itemsText = "Items used: " + player.getItemsUsed() + (player.isBoosted() ? "   BOOST!" : "");
         font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
 
         // Draw text that displays number of events triggered.
@@ -318,11 +365,9 @@ public class GameScreen extends ScreenAdapter {
         );
     }
 
-    // To be implemented as needed
     private void drawInventory() {
-
+        backpack.draw(batch);
     }
-    
     // To be implemented as needed
     private void drawItems() {
 
@@ -356,6 +401,8 @@ public class GameScreen extends ScreenAdapter {
         font.dispose();
         interactTextures.forEach(Texture::dispose);
         puddleTexture.dispose();
+        energyDrinkTexture.dispose();
+        slotTexture.dispose();
     }
 
 }
