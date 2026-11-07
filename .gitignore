@@ -39,3 +39,13 @@ ENG1/.gradle/buildOutputCleanup/buildOutputCleanup.lock
 ENG1/assets/assets.txt
 ENG1/lwjgl3/bin/main/assets.txt
 ENG1/lwjgl3/build/resources/main/assets.txt
+
+# Keep the Gradle wrapper even though *.jar is ignored above
+!gradle-wrapper.jar
+# Other generated folders and editor settings
+bin/
+.vscode/
+.idea/
+*.iml
+out/
+.DS_Store
