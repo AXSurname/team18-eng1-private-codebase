@@ -31,6 +31,7 @@ public class Player extends GameObject {
 
     private float boostTimer;
     private float speedModifier = 1f;
+    private float terrainModifier = 1f;   // puddles; multiplied with the geese slowdown
     private float life = LIFE;
     private final PlayerStats stats = new PlayerStats();
     
@@ -104,6 +105,7 @@ public class Player extends GameObject {
         interactions.clear();
         stats.reset();
         speedModifier = 1f;
+        terrainModifier = 1f;
     }
 
     /**
@@ -171,7 +173,7 @@ public class Player extends GameObject {
             return;
         }
 
-        float speed = (boostTimer > 0f ? BOOSTED_SPEED : SPEED) * speedModifier;
+        float speed = (boostTimer > 0f ? BOOSTED_SPEED : SPEED) * speedModifier * terrainModifier;
         float newX = rect.getX() + moveDirection.x * speed * dt;
         float newY = rect.getY() + moveDirection.y * speed * dt;
 
@@ -214,7 +216,7 @@ public class Player extends GameObject {
     }
 
     public void applySpeedModifier(float modifier) {
-        speedModifier = modifier;
+        terrainModifier = modifier;
     }
 
     public void eventTriggered() {
