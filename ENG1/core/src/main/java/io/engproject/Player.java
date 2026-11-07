@@ -207,7 +207,10 @@ public class Player extends GameObject {
     // Called by EnergyDrinkItem: double speed for 5 seconds
     public void activateBoost() {
         boostTimer = BOOST_DURATION;
-        stats.incrementItemsUsed();;
+    }
+
+    public boolean isBoosted() {
+        return boostTimer > 0f;
     }
 
     public void applySpeedModifier(float modifier) {

@@ -10,6 +10,11 @@ public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
     private static final float DAMAGE_PER_SEC = 1f;
 
+    
+    // Energy drinks the backpack starts each run with, until the team decides how
+    // items should appear (pickups via spawnItem() or a starting stock)
+    private static final int STARTING_ENERGY_DRINKS = 3;
+
     private static final float BOSS_SPAWN_TIME = 5f;
     private boolean bossSpawned = false;
 
@@ -20,6 +25,7 @@ public class LogicManager {
     private final Player player;
     private final Array<Goose> geese;
     private final Array<Puddle> puddles;
+    private final Backpack backpack;
 
     private GameScreen game;
 
@@ -33,6 +39,7 @@ public class LogicManager {
         this.player = game.getPlayer();
         this.geese = game.getGeese();
         this.puddles = game.getPuddles();
+        this.backpack = game.getBackpack();
     }
     
     /**
@@ -51,6 +58,12 @@ public class LogicManager {
     public void resetGame() {
         player.reset(player.getResetPos());
         geese.clear();
+
+        
+        backpack.clear();
+        for (int i = 0; i < STARTING_ENERGY_DRINKS; i++) {
+            backpack.addItem(game.getEnergyDrink());
+        }
 
         bossSpawned = false;
         timer = 0f;
