@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Array;
  */
 public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
+    private static final int MAX_GEESE = 15;   // no new geese spawn while this many are on screen
     private static final float DAMAGE_PER_SEC = 1f;
 
     
@@ -73,7 +74,8 @@ public class LogicManager {
 
     /** Calculates whether another goose should be spawned, and spawns it if so. */
     private void spawnGoose() {
-        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL) {
+
+        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && geese.size < MAX_GEESE) {
             gooseSpawnTimer = 0f;
 
             Goose goose = game.getGoose();

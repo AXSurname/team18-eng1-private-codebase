@@ -8,7 +8,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 /** An enemy for the player to evade. */
 public class Goose extends GameObject {
     private static final float SCALE = 1/32f;
-    private static final float SPEED = 1.5f;
+    private static final float SPEED = 0.7f; // makes it so geese are esasier to outrun
     
     private final Player player;
 
