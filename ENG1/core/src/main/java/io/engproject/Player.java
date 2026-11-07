@@ -39,11 +39,6 @@ public class Player extends GameObject {
     private boolean recievedInput = false;
     private final Array<Interaction> interactions = new Array<>();
     private final Animation<Texture> interactAnimation;
-<<<<<<< HEAD
-=======
-    private float boostTimer;
-    private float speedModifier = 1f;
->>>>>>> origin/feature/events-implementation
 
     /**
      * Creates a player avatar for the user to control.
@@ -163,28 +158,16 @@ public class Player extends GameObject {
      * 
      * @param dt deltatime
      */
-    private void move(float dt) {
+        private void move(float dt) {
         if (moveDirection.isZero()) {
             return;
         }
 
-<<<<<<< HEAD
         float speed = (boostTimer > 0f ? BOOSTED_SPEED : SPEED) * speedModifier;
         float newX = rect.getX() + moveDirection.x * speed * dt;
         float newY = rect.getY() + moveDirection.y * speed * dt;
 
         // Clamp to screen bounds
-=======
-        if (boostTimer > 0f) {
-             newX = rect.getX() + moveDirection.x * BOOSTED_SPEED * speedModifier * dt;
-             newY = rect.getY() + moveDirection.y * BOOSTED_SPEED * speedModifier * dt;
-        } 
-        else 
-        {
-            newX = rect.getX() + moveDirection.x * SPEED * speedModifier * dt;
-            newY = rect.getY() + moveDirection.y * SPEED * speedModifier * dt;
-        }
->>>>>>> origin/feature/events-implementation
         newX = MathUtils.clamp(newX, 0, viewport.getWorldWidth() - rect.getWidth());
         newY = MathUtils.clamp(newY, 0, viewport.getWorldHeight() - rect.getHeight());
 
