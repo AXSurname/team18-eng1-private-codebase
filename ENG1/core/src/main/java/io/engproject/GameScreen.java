@@ -316,6 +316,16 @@ public class GameScreen extends ScreenAdapter {
         // Draw text that displays number of events triggered.
         String eventsText = "Events triggered: " + player.getEventsTriggered();
         font.draw(batch, eventsText, 40f, uiViewport.getWorldHeight() - 120);
+        
+        // Event message, centred below the HUD, for a few seconds after an event triggers
+        String eventMessage = lm.getEventMessage();
+        if (eventMessage != null) {
+            gameoverLayout.setText(font, eventMessage);
+            font.draw(batch, gameoverLayout,
+                      uiViewport.getWorldWidth()/2 - gameoverLayout.width/2,
+                      uiViewport.getWorldHeight() - 240);
+        }
+
 
         // Draw the time left (GameTimer)
         GameTimer gameTimer = lm.getGameTimer();
