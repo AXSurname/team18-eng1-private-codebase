@@ -17,10 +17,13 @@ public class LogicManager {
     private static final int STARTING_ENERGY_DRINKS = 3;
 
     private static final float BOSS_SPAWN_TIME = 5f;
+    private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
     private boolean bossSpawned = false;
 
     private float timer;
     private float gooseSpawnTimer;
+    private String eventMessage;
+    private float eventMessageTimer;
 
     private final GameTimer gameTimer = new GameTimer();   // 5:00 countdown and pause state
     private final Player player;
@@ -51,6 +54,24 @@ public class LogicManager {
     public GameTimer getGameTimer() {
         return gameTimer;
     }
+    /**
+     * Returns the message for an event that has just triggered, so GameScreen can show it.
+     *
+     * @return the message, or null if no event triggered in the last few seconds
+     */
+    public String getEventMessage() {
+        return eventMessageTimer > 0f ? eventMessage : null;
+    }
+
+    /**
+     * Shows a message on screen for a few seconds, so the player knows an event happened.
+     *
+     * @param message the text to show
+     */
+    private void showEventMessage(String message) {
+        eventMessage = message;
+        eventMessageTimer = EVENT_MESSAGE_TIME;
+    }
 
     /**
      * Resets the game state so that geese are deleted, timers are reset, and both the player's
@@ -70,6 +91,7 @@ public class LogicManager {
         timer = 0f;
         gameTimer.reset();   // back to 5:00, paused        
         gooseSpawnTimer = 0f;
+        eventMessageTimer = 0f;
     }
 
     /** Calculates whether another goose should be spawned, and spawns it if so. */
@@ -123,6 +145,7 @@ public class LogicManager {
 
             if (playerOverlapsPuddle && !puddle.isPlayerInside()) {
                 player.eventTriggered();
+                showEventMessage("SPLASH! A PUDDLE SLOWS YOU DOWN");
             }
 
             puddle.setPlayerInside(playerOverlapsPuddle);
@@ -134,7 +157,10 @@ public class LogicManager {
     {
         if (!bossSpawned && timer >= BOSS_SPAWN_TIME) {
             bossSpawned = true;
+            showEventMessage("A BOSS GOOSE HAS ARRIVED WITH ITS FLOCK!");
             player.eventTriggered();
+
+
             geese.add(game.getBossGoose());
             for (int i = 0; i < 6; i++) {
                 geese.add(game.getGoose());
