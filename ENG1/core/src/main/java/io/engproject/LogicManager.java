@@ -16,7 +16,7 @@ public class LogicManager {
     // items should appear (pickups via spawnItem() or a starting stock)
     private static final int STARTING_ENERGY_DRINKS = 3;
 
-    private static final float BOSS_SPAWN_TIME = 5f;
+    private static final float BOSS_SPAWN_TIME = 60f;
     private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
     private boolean bossSpawned = false;
 
@@ -190,6 +190,8 @@ public class LogicManager {
         gameTimer.update(dt);
         timer += dt;
         gooseSpawnTimer += dt;
+        eventMessageTimer = Math.max(0f, eventMessageTimer - dt);
+
 
 
 
