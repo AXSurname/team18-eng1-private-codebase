@@ -74,6 +74,7 @@ public class GameScreen extends ScreenAdapter {
 
     private final Array<Goose> geese = new Array<>();
     private final Array<Puddle> puddles = new Array<>();
+    private final Array<ItemPickup> itemPickups = new Array<>();
 
     // Manager classes
     private final GameManager gm;
@@ -154,6 +155,17 @@ public class GameScreen extends ScreenAdapter {
         return new MegaphoneItem(player, megaphoneTexture);
     }
 
+    /**
+     * Creates a new item pickup for the game.
+     * @param x the x-coordinate of the item pickup
+     * @param y the y-coordinate of the item pickup
+     * @param item the item to be picked up
+     * @return an item pickup that now exists in the game world
+     */
+    protected ItemPickup getPickup(float x, float y, Item item) {
+        return new ItemPickup(x, y, item);
+    }
+
     protected Player getPlayer() {
         return player;
     }
@@ -164,6 +176,10 @@ public class GameScreen extends ScreenAdapter {
 
     protected Array<Puddle> getPuddles() {
         return puddles;
+    }
+
+    protected Array<ItemPickup> getItemPickups() {
+        return itemPickups;
     }
 
     /**
@@ -389,9 +405,13 @@ public class GameScreen extends ScreenAdapter {
     private void drawInventory() {
         backpack.draw(batch);
     }
-    // To be implemented as needed
+    
+    
+    //Draws all item pickups in the game.
     private void drawItems() {
-
+        for (ItemPickup itemPickup : itemPickups) {
+            itemPickup.draw(batch);
+        }
     }
 
     // A debugging method to draw objects without their textures.
@@ -411,6 +431,16 @@ public class GameScreen extends ScreenAdapter {
             goose.drawDebug(shapeRenderer, Color.RED);
         }
         shapeRenderer.end();
+    }
+
+    //Returns the world width in world units.
+    public float getWorldWidth() {
+        return viewport.getWorldWidth();
+    }
+
+    //Returns the world height in world units.
+    public float getWorldHeight() {
+        return viewport.getWorldHeight();
     }
 
     @Override
