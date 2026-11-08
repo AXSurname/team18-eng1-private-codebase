@@ -15,6 +15,7 @@ public class LogicManager {
     // Energy drinks the backpack starts each run with, until the team decides how
     // items should appear (pickups via spawnItem() or a starting stock)
     private static final int STARTING_ENERGY_DRINKS = 3;
+    private static final int STARTING_MEGAPHONES = 1;
 
     private static final float BOSS_SPAWN_TIME = 60f;
     private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
@@ -86,6 +87,11 @@ public class LogicManager {
         for (int i = 0; i < STARTING_ENERGY_DRINKS; i++) {
             backpack.addItem(game.getEnergyDrink());
         }
+        for (int i = 0; i < STARTING_MEGAPHONES; i++) {
+            backpack.addItem(game.getMegaphone());
+        }
+
+      
 
         bossSpawned = false;
         timer = 0f;

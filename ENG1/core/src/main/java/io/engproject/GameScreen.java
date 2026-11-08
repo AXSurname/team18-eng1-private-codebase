@@ -34,7 +34,8 @@ public class GameScreen extends ScreenAdapter {
     private static final String GOOSE_FILENAME = "goose.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
     private static final String PUDDLE_FILENAME = "puddle.png";
-        private static final String ENERGY_DRINK_FILENAME = "energydrink.png";
+    private static final String ENERGY_DRINK_FILENAME = "energydrink.png";
+    private static final String MEGAPHONE_FILENAME = "megaphone.png";
 
     // Backpack position in world units (bottom-left corner of the map)
     private static final float BACKPACK_X = 0f;
@@ -54,6 +55,7 @@ public class GameScreen extends ScreenAdapter {
     private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
     private final Texture puddleTexture = new Texture(Gdx.files.internal(PUDDLE_FILENAME));
     private final Texture energyDrinkTexture = new Texture(Gdx.files.internal(ENERGY_DRINK_FILENAME));
+    private final Texture megaphoneTexture = new Texture(Gdx.files.internal(MEGAPHONE_FILENAME));
     private final Texture slotTexture = createSlotTexture();
 
     // Inventory (no bag icon, so the slots start at BACKPACK_X)
@@ -143,6 +145,15 @@ public class GameScreen extends ScreenAdapter {
     protected EnergyDrinkItem getEnergyDrink() {
         return new EnergyDrinkItem(player, energyDrinkTexture);
     }
+
+    /**
+     * Creates a new megaphone for the player.
+     * @return a megaphone that uses this screen's icon texture
+     */
+    protected MegaphoneItem getMegaphone() {
+        return new MegaphoneItem(player, megaphoneTexture);
+    }
+
     protected Player getPlayer() {
         return player;
     }
@@ -310,7 +321,7 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
 
         // Draw text that displays number of items used.
-        String itemsText = "Items used: " + player.getItemsUsed() + (player.isBoosted() ? "   BOOST!" : "");
+        String itemsText = "Items used: " + player.getItemsUsed() + (player.isBoosted() ? "   BOOST!" : "") + (player.megaphoneActive() ? "   MEGAPHONE!" : "");
         font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
 
         // Draw text that displays number of events triggered.
@@ -412,6 +423,7 @@ public class GameScreen extends ScreenAdapter {
         interactTextures.forEach(Texture::dispose);
         puddleTexture.dispose();
         energyDrinkTexture.dispose();
+        megaphoneTexture.dispose();
         slotTexture.dispose();
     }
 

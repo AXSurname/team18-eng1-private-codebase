@@ -9,5 +9,6 @@ font/Matcha Style.otf
 font/Matcha Style.ttf
 goose.png
 libgdx.png
+megaphone.png
 player.png
 puddle.png

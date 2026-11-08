@@ -28,8 +28,10 @@ public class Player extends GameObject {
     private Vector2 origin;
     private final Vector2 moveDirection = new Vector2();
     private final Vector2 lastDirection = new Vector2(1, 0); // Facing; default is right
+    private static final float MEGAPHONE_DURATION = 5f;
 
     private float boostTimer;
+    private float megaphoneTimer;
     private float speedModifier = 1f;
     private float terrainModifier = 1f;   // puddles; multiplied with the geese slowdown
     private float life = LIFE;
@@ -106,6 +108,7 @@ public class Player extends GameObject {
         stats.reset();
         speedModifier = 1f;
         terrainModifier = 1f;
+        megaphoneTimer = 0f;
     }
 
     /**
@@ -117,6 +120,7 @@ public class Player extends GameObject {
     void update(float dt) {
         // Count down the energy drink boost
         boostTimer = Math.max(0f, boostTimer - dt);
+        megaphoneTimer = Math.max(0f, megaphoneTimer - dt);
 
         
         // Create new interaction if appropriate
@@ -217,6 +221,15 @@ public class Player extends GameObject {
 
     public void applySpeedModifier(float modifier) {
         terrainModifier = modifier;
+    }
+
+    // Called by MegaphoneItem: scares geese away for 5 seconds
+    public void activateMegaphone() {
+        megaphoneTimer = MEGAPHONE_DURATION;
+    }
+
+    public boolean megaphoneActive() {
+        return megaphoneTimer > 0f;
     }
 
     public void eventTriggered() {
