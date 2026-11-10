@@ -156,8 +156,12 @@ public class LogicManager {
             boolean playerOverlapsPuddle = player.overlaps(puddle);
 
             if (playerOverlapsPuddle && !puddle.isPlayerInside()) {
-                player.eventTriggered();
-                showEventMessage("SPLASH! A PUDDLE SLOWS YOU DOWN");
+                if (!puddle.getIsVisible()) {
+                    puddle.setIsVisible(true);
+
+                    player.eventTriggered();
+                    showEventMessage("SPLASH! A PUDDLE SLOWS YOU DOWN");
+                }
             }
 
             puddle.setPlayerInside(playerOverlapsPuddle);

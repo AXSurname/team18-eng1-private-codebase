@@ -3,6 +3,7 @@ package io.engproject;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -308,7 +309,9 @@ public class GameScreen extends ScreenAdapter {
         batch.setColor(Color.WHITE);
 
         for (Puddle puddle : puddles) {
-            puddle.draw(batch);
+            if (puddle.getIsVisible()) {
+                puddle.draw(batch);
+            }
         }
 
         for (Goose goose : geese) {

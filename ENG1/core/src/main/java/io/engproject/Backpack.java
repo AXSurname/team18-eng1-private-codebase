@@ -21,8 +21,6 @@ import java.util.Optional;
  * Textures are owned by the screen that created them, not by this class.
  */
 public class Backpack extends GameObject {
-
-
     public static final int MAX_SLOTS = 5;
 
     // World units, matching the viewport used by GameScreen
