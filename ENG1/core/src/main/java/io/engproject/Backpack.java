@@ -102,9 +102,17 @@ public class Backpack extends GameObject {
      */
     public boolean useSelectedItem() {
         Optional<Item> selected = getSelectedItem();
-        if (selected.isPresent() && selected.get().use()) {
-            items.removeIndex(selectedSlot);
-            return true;
+
+        if (selected.isPresent()) {
+            if (selected.get().getClass() != BreadItem.class) {
+                if (selected.get().use()) {
+                    items.removeIndex(selectedSlot);
+                    return true;
+                }
+
+            } else if (((BreadItem) selected.get()).use()) {
+                return true;
+            }
         }
         return false;
     }

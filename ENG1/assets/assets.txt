@@ -1,3 +1,4 @@
+backpack_bread.png
 bkgnd.png
 bread_0.png
 bread_1.png

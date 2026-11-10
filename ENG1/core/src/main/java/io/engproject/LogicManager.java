@@ -1,6 +1,5 @@
 package io.engproject;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.math.MathUtils;
 
@@ -18,14 +17,14 @@ public class LogicManager {
     
     // Energy drinks the backpack starts each run with, until the team decides how
     // items should appear (pickups via spawnItem() or a starting stock)
-    private static final int STARTING_ENERGY_DRINKS = 3;
+    private static final int STARTING_ENERGY_DRINKS = 2;
     private static final int STARTING_MEGAPHONES = 1;
 
     private static final float BOSS_SPAWN_TIME = 60f;
     private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
     private boolean bossSpawned = false;
 
-    private float timer;
+    private float bossSpawnTimer;
     private float gooseSpawnTimer;
     private String eventMessage;
     private float eventMessageTimer;
@@ -88,10 +87,10 @@ public class LogicManager {
     public void resetGame() {
         player.reset(player.getResetPos());
         geese.clear();
-        puddles.clear();
         itemPickups.clear();
         backpack.clear();
 
+        backpack.addItem(game.getBread());
         for (int i = 0; i < STARTING_ENERGY_DRINKS; i++) {
             backpack.addItem(game.getEnergyDrink());
         }
@@ -99,9 +98,9 @@ public class LogicManager {
             backpack.addItem(game.getMegaphone());
         }
 
-        bossSpawned = false;
-        timer = 0f;
         gameTimer.reset();   // back to 5:00, paused        
+        bossSpawned = false;
+        bossSpawnTimer = 0f;
         gooseSpawnTimer = 0f;
         eventMessageTimer = 0f;
         pickupSpawnTimer = 0f;
@@ -176,7 +175,7 @@ public class LogicManager {
     // To be implemented as needed
     private void startEvent() 
     {
-        if (!bossSpawned && timer >= BOSS_SPAWN_TIME) {
+        if (!bossSpawned && bossSpawnTimer >= BOSS_SPAWN_TIME) {
             bossSpawned = true;
             showEventMessage("A BOSS GOOSE HAS ARRIVED WITH ITS FLOCK!");
             player.eventTriggered();
@@ -229,26 +228,21 @@ public class LogicManager {
      */
     public void update(float dt) {
         gameTimer.update(dt);
-        timer += dt;
+        bossSpawnTimer += dt;
         gooseSpawnTimer += dt;
         pickupSpawnTimer += dt;
         eventMessageTimer = Math.max(0f, eventMessageTimer - dt);
-
-
-
 
         player.update(dt);
 
         spawnGoose();
         
-
         for (Goose goose : geese) {
             goose.update(dt);
         }
 
         checkCollision(dt);
 
-        // Put startEvent() and spawnItem() methods here
         startEvent();
         spawnItem();
     }

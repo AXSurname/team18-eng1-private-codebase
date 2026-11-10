@@ -23,7 +23,7 @@ public abstract class Item {
      *
      * @return true if the item was used (so the caller can remove it)
      */
-    public final boolean use()
+    public boolean use()
     {
         if (!canUse())
         {

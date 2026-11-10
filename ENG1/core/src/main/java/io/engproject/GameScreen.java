@@ -32,8 +32,9 @@ public class GameScreen extends ScreenAdapter {
     private static final String BKGND_FILENAME = "bkgnd.png";
     private static final String PLAYER_FILENAME = "player.png";
     private static final String GOOSE_FILENAME = "goose.png";
-    private static final String INTERACT_PART_FILENAME = "bread_";
     private static final String PUDDLE_FILENAME = "puddle.png";
+    private static final String INTERACT_PART_FILENAME = "bread_";
+    private static final String BREAD_ITEM_FILENAME = "backpack_bread.png";
     private static final String ENERGY_DRINK_FILENAME = "energydrink.png";
     private static final String MEGAPHONE_FILENAME = "megaphone.png";
 
@@ -50,19 +51,20 @@ public class GameScreen extends ScreenAdapter {
     private final Viewport uiViewport = new ScreenViewport();
 
     // Assets
-    private final Texture bkgndTexture = new Texture(Gdx.files.internal(BKGND_FILENAME));
-    private final Texture playerTexture = new Texture(Gdx.files.internal(PLAYER_FILENAME));
-    private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
-    private final Texture puddleTexture = new Texture(Gdx.files.internal(PUDDLE_FILENAME));
-    private final Texture energyDrinkTexture = new Texture(Gdx.files.internal(ENERGY_DRINK_FILENAME));
-    private final Texture megaphoneTexture = new Texture(Gdx.files.internal(MEGAPHONE_FILENAME));
+    private final Texture bkgndTexture = loadTextureFromPath(BKGND_FILENAME);
+    private final Texture playerTexture = loadTextureFromPath(PLAYER_FILENAME);
+    private final Texture gooseTexture = loadTextureFromPath(GOOSE_FILENAME);
+    private final Texture puddleTexture = loadTextureFromPath(PUDDLE_FILENAME);
+    private final Texture breadItemTexture = loadTextureFromPath(BREAD_ITEM_FILENAME);
+    private final Texture energyDrinkTexture = loadTextureFromPath(ENERGY_DRINK_FILENAME);
+    private final Texture megaphoneTexture = loadTextureFromPath(MEGAPHONE_FILENAME);
     private final Texture slotTexture = createSlotTexture();
+    
+    private final Array<Texture> interactTextures = loadInteractTextures();
+    private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
     // Inventory (no bag icon, so the slots start at BACKPACK_X)
     private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
-
-    private final Array<Texture> interactTextures = loadInteractTextures();
-    private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
     // Player and geese
     private final Player player = new Player(
@@ -94,8 +96,7 @@ public class GameScreen extends ScreenAdapter {
 
         bkgndTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
 
-        puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
-        puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
+        createPuddles();
     }
 
     /**
@@ -106,17 +107,18 @@ public class GameScreen extends ScreenAdapter {
      */
     private Array<Texture> loadInteractTextures() {
         var textures = new Array<Texture>();
-
         for (int i=0; i<4; i++) {
             textures.add(new Texture(Gdx.files.internal(String.format(INTERACT_PART_FILENAME
                                                                       + "%01d.png", i))));
         }
-
         return textures;
     }
+    
+    private Texture loadTextureFromPath(String filepath) {
+        return new Texture(Gdx.files.internal(filepath));
+    }
 
-
-        /**
+    /**
      * Creates the texture drawn behind each backpack slot: a translucent dark square
      * with a light border. Made in code so no extra asset file is needed.
      *
@@ -137,6 +139,15 @@ public class GameScreen extends ScreenAdapter {
 
     protected Backpack getBackpack() {
         return backpack;
+    }
+
+    private void createPuddles() {
+        puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
+        puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
+    }
+
+    protected BreadItem getBread() {
+        return new BreadItem(player, backpack, breadItemTexture);
     }
 
     /**
@@ -264,17 +275,11 @@ public class GameScreen extends ScreenAdapter {
 
         inputMovement.nor();
         player.changeDirection(inputMovement);
-
-        // Pass in interaction input to Player
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            player.setRecievedInput(true);
-        } else {
-            player.setRecievedInput(false);
-        }
         
-        // Backpack: keys 1-5 select a slot, E uses the selected item
+        // Backpack: keys 1-5 select a slot, left-click or E uses the selected item
         backpack.update(Gdx.graphics.getDeltaTime());
-        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+            || Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             backpack.useSelectedItem();
         }
     }
@@ -318,11 +323,11 @@ public class GameScreen extends ScreenAdapter {
         drawItems();
 
         for (Interaction interaction : player.getInteractions()) {
-             batch.setColor(highContrast ? Color.CYAN : Color.WHITE);
+            batch.setColor(highContrast ? Color.CYAN : Color.WHITE);
             interaction.draw(batch);
         }
 
-         batch.setColor(Color.WHITE);
+        batch.setColor(Color.WHITE);
         drawInventory();
 
         batch.end();
@@ -390,15 +395,15 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBackground() {
         // Calculate how many times the texture fits into the world dimensions
+        float v = viewport.getWorldHeight() / WORLD_HEIGHT;
         float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
-        float v2 = viewport.getWorldHeight() / WORLD_HEIGHT;
 
         // Draw with custom (u, v) coordinates to correctly repeat the texture
         batch.draw(bkgndTexture,
             0, 0,
             viewport.getWorldWidth(), viewport.getWorldHeight(),
-            0, 0,
-            u2, v2
+            0, v,
+            u2, 0
         );
     }
 
@@ -445,16 +450,20 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        // Dispose textures
         bkgndTexture.dispose();
         playerTexture.dispose();
         gooseTexture.dispose();
-        batch.dispose();
-        font.dispose();
-        interactTextures.forEach(Texture::dispose);
         puddleTexture.dispose();
+        breadItemTexture.dispose();
         energyDrinkTexture.dispose();
         megaphoneTexture.dispose();
+        interactTextures.forEach(Texture::dispose);
         slotTexture.dispose();
+        
+        // Dispose other
+        batch.dispose();
+        font.dispose();
     }
 
 }
