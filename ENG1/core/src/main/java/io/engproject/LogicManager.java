@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.MathUtils;
  */
 public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
-    private static final int MAX_GEESE = 15;   // no new geese spawn while this many are on screen
+    private static final int MAX_ANGRY_GEESE = 15;   // no new geese spawn while this many are active
     private static final float DAMAGE_PER_SEC = 1f;
 
     //Time between spawn of items.
@@ -108,8 +108,14 @@ public class LogicManager {
 
     /** Calculates whether another goose should be spawned, and spawns it if so. */
     private void spawnGoose() {
+        int angryGooseCount = 0;
+        for (Goose goose : geese) {
+            if (!goose.isFriendly()) {
+                angryGooseCount++;
+            }
+        }
 
-        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && geese.size < MAX_GEESE) {
+        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && angryGooseCount < MAX_ANGRY_GEESE) {
             gooseSpawnTimer = 0f;
 
             Goose goose = game.getGoose();
@@ -118,7 +124,7 @@ public class LogicManager {
     }
 
     /**
-     * Removes a Goose if its Rectangle collides with an Interaction's Rectangle,
+     * Makes a Goose friendly if its Rectangle collides with an Interaction's Rectangle,
      * and decreases the Players's health if a Goose's Rectangle collides with the
      * Player's.
      * 
@@ -132,7 +138,7 @@ public class LogicManager {
                 Goose next = iterator.next();
 
                 if (interaction.overlaps(next)) {
-                    iterator.remove();
+                    next.makeFriendly(game.getFriendlyGooseTexture());
                 }
             }
         }
@@ -140,7 +146,7 @@ public class LogicManager {
         int hitNum = 0;
 
         for (Goose goose : geese) {
-            if (player.overlaps(goose)) {
+            if (!goose.isFriendly() && player.overlaps(goose)) {
                 ++hitNum;
             }
         }
@@ -186,7 +192,7 @@ public class LogicManager {
 
 
             geese.add(game.getBossGoose());
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 8; i++) {
                 geese.add(game.getGoose());
             }
         }
