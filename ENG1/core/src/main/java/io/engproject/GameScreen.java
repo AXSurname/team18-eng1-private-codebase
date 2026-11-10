@@ -253,7 +253,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     /**
-     * Detects and processes the player's input on keyboard and mouse. Note it is the
+     * Detects and processes the player's input on keyboard. Note it is the
      * only exempt method in GameScreen to interact directly with Player's logic
      * directly to pass in input data.
      */
@@ -261,26 +261,25 @@ public class GameScreen extends ScreenAdapter {
         // Pass in movement input to Player
         inputMovement.setZero();
         
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             inputMovement.y += 1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             inputMovement.x -= 1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             inputMovement.y -= 1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             inputMovement.x += 1;
         }
 
         inputMovement.nor();
         player.changeDirection(inputMovement);
         
-        // Backpack: keys 1-5 select a slot, left-click or E uses the selected item
+        // Backpack: keys 1-5 select a slot, E uses the selected item
         backpack.update(Gdx.graphics.getDeltaTime());
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
-            || Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             backpack.useSelectedItem();
         }
     }
