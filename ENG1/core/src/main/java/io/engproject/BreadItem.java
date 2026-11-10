@@ -58,8 +58,4 @@ public class BreadItem extends Item {
         player.setIsThrowingBread(true);
         player.startThrowBread();
     }
-
-    // animation method?
-
-    // interact method?
 }

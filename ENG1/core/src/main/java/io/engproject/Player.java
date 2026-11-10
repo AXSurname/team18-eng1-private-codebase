@@ -39,7 +39,6 @@ public class Player extends GameObject {
     
     // Interaction variables
     private float interactTimer;
-    private boolean recievedInput = false;
     private boolean isThrowingBread = false;
     private final Array<Interaction> interactions = new Array<>();
     private final Animation<Texture> interactAnimation;
@@ -86,16 +85,8 @@ public class Player extends GameObject {
         return speedModifier;
     }
 
-    public boolean getRecievedInput() {
-        return recievedInput;
-    }
-
     public boolean isAlive() {
         return life > 0f;
-    }
-
-    public void setRecievedInput(boolean bool) {
-        recievedInput = bool;
     }
 
     public void setIsThrowingBread(boolean bool) {
@@ -109,7 +100,6 @@ public class Player extends GameObject {
     public void reset(Vector2 pos) {
         rect.setPosition(pos);
         life = LIFE;
-        recievedInput = false;
         speedModifier = 0f;
         boostTimer = 0f;
         interactTimer = 0f;
@@ -203,10 +193,9 @@ public class Player extends GameObject {
     // Called by BreadItem: allows player to feed geese with infinite bread
     public void startThrowBread() {
         var playerCentre = getCentre(TMP_VEC2);
-        interactions.add(new Interaction(playerCentre, lastDirection, interactAnimation));
+        interactions.add(new BreadInteraction(playerCentre, lastDirection, interactAnimation));
 
         interactTimer = INTERACT_COOLDOWN;
-        recievedInput = false;
     }
 
     private void updateThrowBread(float dt) {
@@ -245,6 +234,7 @@ public class Player extends GameObject {
         return megaphoneTimer > 0f;
     }
 
+    // Increment player statistics methods
     public void eventTriggered() {
         stats.incrementEventsTriggered();
     }
