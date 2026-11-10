@@ -8,7 +8,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 /** An enemy for the player to evade. */
 public class Goose extends GameObject {
     private static final float SCALE = 1/32f;
-    private static final float SPEED = 1.5f;
+    private static final float SPEED = 0.7f; // makes it so geese are esasier to outrun
     
     private final Player player;
 
@@ -39,6 +39,11 @@ public class Goose extends GameObject {
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
         Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
 
+
+        if (player.megaphoneActive()) {
+            // Move away from player centre
+            direction.scl(-1);
+        }
         // Move towards player centre
         rect.setPosition(rect.getX() + direction.x, rect.getY() + direction.y);
     }

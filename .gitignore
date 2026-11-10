@@ -30,3 +30,22 @@ local.properties
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+ENG1/.gradle/9.4.0/checksums/checksums.lock
+ENG1/.gradle/9.4.0/executionHistory/executionHistory.bin
+ENG1/.gradle/9.4.0/executionHistory/executionHistory.lock
+ENG1/.gradle/9.4.0/fileHashes/fileHashes.bin
+ENG1/.gradle/9.4.0/fileHashes/fileHashes.lock
+ENG1/.gradle/buildOutputCleanup/buildOutputCleanup.lock
+ENG1/assets/assets.txt
+ENG1/lwjgl3/bin/main/assets.txt
+ENG1/lwjgl3/build/resources/main/assets.txt
+
+# Keep the Gradle wrapper even though *.jar is ignored above
+!gradle-wrapper.jar
+# Other generated folders and editor settings
+bin/
+.vscode/
+.idea/
+*.iml
+out/
+.DS_Store

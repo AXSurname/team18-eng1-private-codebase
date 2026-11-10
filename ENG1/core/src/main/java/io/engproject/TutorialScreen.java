@@ -16,8 +16,12 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * on any keyboard input, and then calls GameManager to set screen to the playable game.
  */
 public class TutorialScreen extends ScreenAdapter {
-    private static final String TUTORIAL_TEXT = "Avoid the geese and feed them bread for them to leave you!\n"
-                                                + "Move: WASD\nThrow bread: left-click\n"
+    private static final String TUTORIAL_TEXT = "Avoid the geese and feed them bread for them to leave you!\n\n"
+                                                + "Move: W, A, S, D\nSelect item in inventory: 1, 2, 3, 4, 5\n"
+                                                + "Use selected item in inventory: left-click or E\n"
+                                                + "(The bread (i.e. the first item) is infinite)\n\n"
+                                                + "Toggle high-contrast visuals: H\n"
+                                                + "Pause/unpause: Esc\n\n"
                                                 + "Press any key to begin!";
 
     private final GameManager gm;
@@ -59,7 +63,7 @@ public class TutorialScreen extends ScreenAdapter {
 
         // Display text
         float textX;
-        float textY = viewport.getWorldHeight()/2 * 1.3f;
+        float textY = viewport.getWorldHeight()/2 * 1.5f;
 
         ScreenUtils.clear(Color.BLACK);
 

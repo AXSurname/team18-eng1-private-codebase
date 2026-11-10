@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -31,8 +32,15 @@ public class GameScreen extends ScreenAdapter {
     private static final String BKGND_FILENAME = "bkgnd.png";
     private static final String PLAYER_FILENAME = "player.png";
     private static final String GOOSE_FILENAME = "goose.png";
+    private static final String PUDDLE_FILENAME = "puddle.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
+    private static final String BREAD_ITEM_FILENAME = "backpack_bread.png";
+    private static final String ENERGY_DRINK_FILENAME = "energydrink.png";
+    private static final String MEGAPHONE_FILENAME = "megaphone.png";
 
+    // Backpack position in world units (bottom-left corner of the map)
+    private static final float BACKPACK_X = 0f;
+    private static final float BACKPACK_Y = 0.2f;
     // General
     private final ShapeRenderer shapeRenderer;
     private final Batch batch;
@@ -43,12 +51,20 @@ public class GameScreen extends ScreenAdapter {
     private final Viewport uiViewport = new ScreenViewport();
 
     // Assets
-    private final Texture bkgndTexture = new Texture(Gdx.files.internal(BKGND_FILENAME));
-    private final Texture playerTexture = new Texture(Gdx.files.internal(PLAYER_FILENAME));
-    private final Texture gooseTexture = new Texture(Gdx.files.internal(GOOSE_FILENAME));
-
+    private final Texture bkgndTexture = loadTextureFromPath(BKGND_FILENAME);
+    private final Texture playerTexture = loadTextureFromPath(PLAYER_FILENAME);
+    private final Texture gooseTexture = loadTextureFromPath(GOOSE_FILENAME);
+    private final Texture puddleTexture = loadTextureFromPath(PUDDLE_FILENAME);
+    private final Texture breadItemTexture = loadTextureFromPath(BREAD_ITEM_FILENAME);
+    private final Texture energyDrinkTexture = loadTextureFromPath(ENERGY_DRINK_FILENAME);
+    private final Texture megaphoneTexture = loadTextureFromPath(MEGAPHONE_FILENAME);
+    private final Texture slotTexture = createSlotTexture();
+    
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
+
+    // Inventory (no bag icon, so the slots start at BACKPACK_X)
+    private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
 
     // Player and geese
     private final Player player = new Player(
@@ -59,6 +75,8 @@ public class GameScreen extends ScreenAdapter {
     private final Vector2 inputMovement = new Vector2();
 
     private final Array<Goose> geese = new Array<>();
+    private final Array<Puddle> puddles = new Array<>();
+    private final Array<ItemPickup> itemPickups = new Array<>();
 
     // Manager classes
     private final GameManager gm;
@@ -77,6 +95,8 @@ public class GameScreen extends ScreenAdapter {
         this.lm = new LogicManager(this);
 
         bkgndTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+
+        createPuddles();
     }
 
     /**
@@ -87,13 +107,74 @@ public class GameScreen extends ScreenAdapter {
      */
     private Array<Texture> loadInteractTextures() {
         var textures = new Array<Texture>();
-
         for (int i=0; i<4; i++) {
             textures.add(new Texture(Gdx.files.internal(String.format(INTERACT_PART_FILENAME
                                                                       + "%01d.png", i))));
         }
-
         return textures;
+    }
+    
+    private Texture loadTextureFromPath(String filepath) {
+        return new Texture(Gdx.files.internal(filepath));
+    }
+
+    /**
+     * Creates the texture drawn behind each backpack slot: a translucent dark square
+     * with a light border. Made in code so no extra asset file is needed.
+     *
+     * @return the slot texture
+     */
+    private Texture createSlotTexture() {
+        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0f, 0f, 0f, 0.5f);
+        pixmap.fill();
+        pixmap.setColor(Color.WHITE);
+        pixmap.drawRectangle(0, 0, 32, 32);
+        pixmap.drawRectangle(1, 1, 30, 30);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    protected Backpack getBackpack() {
+        return backpack;
+    }
+
+    private void createPuddles() {
+        puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
+        puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
+    }
+
+    protected BreadItem getBread() {
+        return new BreadItem(player, backpack, breadItemTexture);
+    }
+
+    /**
+     * Creates a new energy drink for the player.
+     * @return an energy drink that uses this screen's icon texture
+     */
+    protected EnergyDrinkItem getEnergyDrink() {
+        return new EnergyDrinkItem(player, energyDrinkTexture);
+    }
+
+    /**
+     * Creates a new megaphone for the player.
+     * @return a megaphone that uses this screen's icon texture
+     */
+    protected MegaphoneItem getMegaphone() {
+        return new MegaphoneItem(player, megaphoneTexture);
+    }
+
+    /**
+     * Creates a new item pickup for the game.
+     * @param x the x-coordinate of the item pickup
+     * @param y the y-coordinate of the item pickup
+     * @param item the item to be picked up
+     * @return an item pickup that now exists in the game world
+     */
+    protected ItemPickup getPickup(float x, float y, Item item) {
+        return new ItemPickup(x, y, item);
     }
 
     protected Player getPlayer() {
@@ -104,12 +185,28 @@ public class GameScreen extends ScreenAdapter {
         return geese;
     }
 
+    protected Array<Puddle> getPuddles() {
+        return puddles;
+    }
+
+    protected Array<ItemPickup> getItemPickups() {
+        return itemPickups;
+    }
+
     /**
      * Spawns a Goose outside the map and returns it.
      * @return a goose that now exists in the game world.
      */
     protected Goose getGoose() {
         return Goose.spawn(viewport, gooseTexture, player);
+    }
+    
+    /**
+     * Spawns a BossGoose outside the map and returns it.
+     * @return a boss goose that now exists in the game world.
+     */
+    protected BossGoose getBossGoose() {
+        return BossGoose.spawn(viewport, gooseTexture, player);
     }
 
     // Updates both viewports' window size if configuration.setResizable() is changed to true.
@@ -131,10 +228,21 @@ public class GameScreen extends ScreenAdapter {
      */
     @Override
     public void render(float dt) {
-        // Calls to input and logic
-        if (player.isAlive()) {
-            getInput();
-            lm.update(dt);
+        // Enables high contrast mode with H
+        if (Gdx.input.isKeyJustPressed(Input.Keys.H)) {
+            AccessibilitySettings.toggleHighContrast();
+        }
+
+        // Calls to input and logic, unless paused (the game starts paused) or over
+        GameTimer gameTimer = lm.getGameTimer();
+        if (player.isAlive() && !gameTimer.isFinished()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                gameTimer.togglePause();
+            }
+            if (!gameTimer.isPaused()) {
+                getInput();
+                lm.update(dt);
+            }
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             lm.resetGame();
         }
@@ -167,12 +275,12 @@ public class GameScreen extends ScreenAdapter {
 
         inputMovement.nor();
         player.changeDirection(inputMovement);
-
-        // Pass in interaction input to Player
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            player.setRecievedInput(true);
-        } else {
-            player.setRecievedInput(false);
+        
+        // Backpack: keys 1-5 select a slot, left-click or E uses the selected item
+        backpack.update(Gdx.graphics.getDeltaTime());
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+            || Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            backpack.useSelectedItem();
         }
     }
 
@@ -181,6 +289,8 @@ public class GameScreen extends ScreenAdapter {
      * and inventory.
      */
     private void draw() {
+        boolean highContrast = AccessibilitySettings.isHighContrast();
+
         ScreenUtils.clear(Color.BLACK);
 
         // Render textures
@@ -188,20 +298,36 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
+        if (highContrast) {
+            batch.setColor(new Color(0.25f, 0.25f, 0.25f, 1f));
+        } else {
+            batch.setColor(Color.WHITE);
+        }
+           
         drawBackground();
+        batch.setColor(Color.WHITE);
+
+        for (Puddle puddle : puddles) {
+            puddle.draw(batch);
+        }
 
         for (Goose goose : geese) {
+            batch.setColor(highContrast ? Color.PINK : Color.WHITE);
             goose.draw(batch);
         }
 
+        batch.setColor(highContrast ? Color.YELLOW : Color.WHITE);
         player.draw(batch);
 
+        batch.setColor(Color.WHITE);
         drawItems();
 
         for (Interaction interaction : player.getInteractions()) {
+            batch.setColor(highContrast ? Color.CYAN : Color.WHITE);
             interaction.draw(batch);
         }
 
+        batch.setColor(Color.WHITE);
         drawInventory();
 
         batch.end();
@@ -215,9 +341,41 @@ public class GameScreen extends ScreenAdapter {
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
 
-        // Display game over text if player is dead
+        // Draw text that displays number of items used.
+        String itemsText = "Items used: " + player.getItemsUsed() + (player.isBoosted() ? "   BOOST!" : "") + (player.megaphoneActive() ? "   MEGAPHONE!" : "");
+        font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
+
+        // Draw text that displays number of events triggered.
+        String eventsText = "Events triggered: " + player.getEventsTriggered();
+        font.draw(batch, eventsText, 40f, uiViewport.getWorldHeight() - 120);
+        
+        // Event message, centred below the HUD, for a few seconds after an event triggers
+        String eventMessage = lm.getEventMessage();
+        if (eventMessage != null) {
+            gameoverLayout.setText(font, eventMessage);
+            font.draw(batch, gameoverLayout,
+                      uiViewport.getWorldWidth()/2 - gameoverLayout.width/2,
+                      uiViewport.getWorldHeight() - 240);
+        }
+
+
+        // Draw the time left (GameTimer)
+        GameTimer gameTimer = lm.getGameTimer();
+        String timeText = "Time left: " + gameTimer.getFormattedTime();
+        font.draw(batch, timeText, 40f, uiViewport.getWorldHeight() - 160);
+
+        // Centre message: game over, survived the 5 minutes, or paused
+        String centreText = null;
         if (!player.isAlive()) {
-            String gameoverText = "GAME OVER!\nPress R to Restart";
+            centreText = "GAME OVER!\nPress R to Restart";
+        } else if (gameTimer.isFinished()) {
+            centreText = "YOU SURVIVED!\nPress R to Restart";
+        } else if (gameTimer.isPaused()) {
+            centreText = "PAUSED\nPress ESC to play";
+        }
+
+        if (centreText != null) {
+            String gameoverText = centreText;
             float gameoverX;
             float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
 
@@ -237,26 +395,28 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBackground() {
         // Calculate how many times the texture fits into the world dimensions
+        float v = viewport.getWorldHeight() / WORLD_HEIGHT;
         float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
-        float v2 = viewport.getWorldHeight() / WORLD_HEIGHT;
 
         // Draw with custom (u, v) coordinates to correctly repeat the texture
         batch.draw(bkgndTexture,
             0, 0,
             viewport.getWorldWidth(), viewport.getWorldHeight(),
-            0, 0,
-            u2, v2
+            0, v,
+            u2, 0
         );
     }
 
-    // To be implemented as needed
     private void drawInventory() {
-
+        backpack.draw(batch);
     }
     
-    // To be implemented as needed
+    
+    //Draws all item pickups in the game.
     private void drawItems() {
-
+        for (ItemPickup itemPickup : itemPickups) {
+            itemPickup.draw(batch);
+        }
     }
 
     // A debugging method to draw objects without their textures.
@@ -278,14 +438,32 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.end();
     }
 
+    //Returns the world width in world units.
+    public float getWorldWidth() {
+        return viewport.getWorldWidth();
+    }
+
+    //Returns the world height in world units.
+    public float getWorldHeight() {
+        return viewport.getWorldHeight();
+    }
+
     @Override
     public void dispose() {
+        // Dispose textures
         bkgndTexture.dispose();
         playerTexture.dispose();
         gooseTexture.dispose();
+        puddleTexture.dispose();
+        breadItemTexture.dispose();
+        energyDrinkTexture.dispose();
+        megaphoneTexture.dispose();
+        interactTextures.forEach(Texture::dispose);
+        slotTexture.dispose();
+        
+        // Dispose other
         batch.dispose();
         font.dispose();
-        interactTextures.forEach(Texture::dispose);
     }
 
 }

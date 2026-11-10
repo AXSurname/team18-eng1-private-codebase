@@ -14,20 +14,14 @@ import java.util.Optional;
 /**
  * A backpack that holds up to {@value #MAX_SLOTS} items.
  *
- * The backpack is a {@link GameObject}: its own rectangle and texture draw the bag icon,
- * and a row of slots is drawn beside it. Keys 1-5 select a slot.
+ * The backpack is a {@link GameObject}: its own rectangle and texture draw the bag icon
+ * (the texture may be null for no icon), and a row of slots is drawn beside it.
+ * Keys 1-5 select a slot; {@link #useSelectedItem()} uses the item in it.
  *
  * Textures are owned by the screen that created them, not by this class.
  */
 public class Backpack extends GameObject {
 
-    /** Item that can be stored in the backpack. */
-    public record Item(String name, Texture icon) {
-        public Item {
-            Objects.requireNonNull(name, "name");
-            Objects.requireNonNull(icon, "icon");
-        }
-    }
 
     public static final int MAX_SLOTS = 5;
 
@@ -101,10 +95,31 @@ public class Backpack extends GameObject {
     public Optional<Item> getSelectedItem() {
         return getItem(selectedSlot);
     }
+        /**
+     * Uses the item in the selected slot and removes it, but only if it could be used.
+     *
+     * @return true if an item was used
+     */
+    public boolean useSelectedItem() {
+        Optional<Item> selected = getSelectedItem();
+
+        if (selected.isPresent()) {
+            if (selected.get().getClass() != BreadItem.class) {
+                if (selected.get().use()) {
+                    items.removeIndex(selectedSlot);
+                    return true;
+                }
+
+            } else if (((BreadItem) selected.get()).use()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public boolean contains(String itemName) {
         for (var item : items) {
-            if (item.name().equals(itemName)) {
+            if (item.getName().equals(itemName)) {
                 return true;
             }
         }
@@ -162,7 +177,7 @@ public class Backpack extends GameObject {
 
             if (slot < items.size) {
                 float iconSize = SLOT_SIZE - 2 * ICON_INSET;
-                batch.draw(items.get(slot).icon(),
+                batch.draw(items.get(slot).getIcon(),
                     slotPosition.x + ICON_INSET,
                     slotPosition.y + ICON_INSET,
                     iconSize,

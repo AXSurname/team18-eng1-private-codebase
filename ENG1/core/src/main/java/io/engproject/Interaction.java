@@ -6,11 +6,11 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 
 /** An animated interaction which a player triggers to affect a goose. */
-public class Interaction extends GameObject {
-    private static final float DURATION = 0.4f;
-    private static final float SIZE = 1f;
+public abstract class Interaction extends GameObject {
+    private final float DURATION;
+    private final float SIZE;
 
-    private float lifespan = DURATION;
+    private float lifespan;
     private final Animation<Texture> animation;
 
     /**
@@ -20,10 +20,17 @@ public class Interaction extends GameObject {
      * @param direction the direction the player is facing
      * @param animation the frames of the animation representing the interaction
      */
-    public Interaction(Vector2 pos, Vector2 direction, Animation<Texture> animation) {
-        super(pos.x - SIZE/2 + direction.x * SIZE * 0.75f,
-              pos.y - SIZE/2 + direction.y * SIZE * 0.75f,
-              SIZE, SIZE);
+    public Interaction(Vector2 pos, Vector2 direction,
+                       float duration, float size,
+                       Animation<Texture> animation) {
+        super(pos.x - size/2 + direction.x * size * 0.75f,
+              pos.y - size/2 + direction.y * size * 0.75f,
+              size, size);
+              
+        DURATION = duration;
+        SIZE = size;
+
+        lifespan = DURATION;
         this.animation = animation;
     }
 

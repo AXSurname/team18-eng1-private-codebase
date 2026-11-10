@@ -1,36 +1,29 @@
 package io.engproject;
 
+import com.badlogic.gdx.graphics.Texture;
+
+/** Doubles the player's speed for a few seconds (see Player.activateBoost). */
 public class EnergyDrinkItem extends Item {
 
     private static final String ITEM_NAME = "Energy Drink";
 
-    public EnergyDrinkItem(Player player) {
-        super(player);
+    public EnergyDrinkItem(Player player, Texture icon) {
+        super(player, icon);
     }
 
     @Override
     protected String getName() {
         return ITEM_NAME;
-    } 
+    }
 
     @Override
     protected boolean canUse() {
-        return true;
+        return player.isAlive();
     }
 
     @Override
-    protected void applyEffect() 
+    protected void applyEffect()
     {
         player.activateBoost();
-    }
-
-    @Override
-    protected void consume() 
-    {
-    }
-
-    @Override
-    protected void incrementItemsUsed() {
-        
     }
 }
