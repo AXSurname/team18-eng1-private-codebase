@@ -208,12 +208,12 @@ public class LogicManager {
 
     // Spawns a random item pickup if the spawn timer has elapsed.
     private void spawnItem() {
-        if (pickupSpawnTimer > PICKUP_SPAWN_INTERVAL)
+        if (pickupSpawnTimer >= PICKUP_SPAWN_INTERVAL)
         {
             pickupSpawnTimer = 0f;
         
 
-            float itemSpawnChance = MathUtils.random(0f, 100f); // Decided which item to spawn.
+            float itemSpawnChance = MathUtils.random(0f, 101f); // Decided which item to spawn.
 
             float rndX = MathUtils.random(0f, game.getWorldWidth() - ItemPickup.SIZE);
             float rndY = MathUtils.random(0f, game.getWorldHeight() - ItemPickup.SIZE);
