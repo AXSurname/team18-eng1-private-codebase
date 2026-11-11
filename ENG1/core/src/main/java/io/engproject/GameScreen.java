@@ -3,7 +3,6 @@ package io.engproject;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -49,6 +48,7 @@ public class GameScreen extends ScreenAdapter {
     private final GlyphLayout gameoverLayout = new GlyphLayout();
 
     private final Viewport viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
+    private final Viewport backpackViewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
     private final Viewport uiViewport = new ScreenViewport();
 
     // Assets
@@ -217,6 +217,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         viewport.update(width, height, true);
         uiViewport.update(width, height, true);
+        backpackViewport.update(width, height, true);
     }
 
     // Resets the game when the screen is set as the current screen.
@@ -336,9 +337,11 @@ public class GameScreen extends ScreenAdapter {
         }
 
         batch.setColor(Color.WHITE);
-        drawInventory();
 
         batch.end();
+
+        // Render backpack
+        drawInventory();
 
         // Render UI
         uiViewport.apply();
@@ -366,7 +369,6 @@ public class GameScreen extends ScreenAdapter {
                       uiViewport.getWorldHeight() - 240);
         }
 
-
         // Draw the time left (GameTimer)
         GameTimer gameTimer = lm.getGameTimer();
         String timeText = "Time left: " + gameTimer.getFormattedTime();
@@ -382,7 +384,7 @@ public class GameScreen extends ScreenAdapter {
             centreText = "PAUSED - press Esc to play\n\n" + TutorialScreen.CONTROLS_TEXT;
         }
 
-       if (centreText != null) {
+        if (centreText != null) {
             float baseScaleX = font.getData().scaleX;
             float baseScaleY = font.getData().scaleY;
             float gameoverX;
@@ -390,7 +392,7 @@ public class GameScreen extends ScreenAdapter {
 
             String[] lines = centreText.split("\n");
             for (int i = 0; i < lines.length; i++) {
-           // When paused, line 0 is the "PAUSED" header; everything after is the controls list
+            // When paused, line 0 is the "PAUSED" header; everything after is the controls list
                 boolean smallLine = gameTimer.isPaused() && i > 0;
                  if (smallLine) {
                     font.getData().setScale(baseScaleX * 0.7f, baseScaleY * 0.7f);
@@ -402,12 +404,10 @@ public class GameScreen extends ScreenAdapter {
                 gameoverX = uiViewport.getWorldWidth()/2 - gameoverLayout.width/2;
                 font.draw(batch, gameoverLayout, gameoverX, gameoverY);
                 gameoverY -= gameoverLayout.height * 1.3f;
-       }
+            }
 
-        
-    font.getData().setScale(baseScaleX, baseScaleY); // restore for HUD / other screens
-    }
-
+            font.getData().setScale(baseScaleX, baseScaleY); // restore for HUD / other screens
+        }
 
         batch.end();
         
@@ -418,9 +418,6 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.setColor(Color.YELLOW);
         shapeRenderer.rect(25f, h - 205f, 450f, 170f);   // x, y (bottom-left), width, height
         shapeRenderer.end();
-
-        
-
 
         // Debugging
         drawDebug();
@@ -440,10 +437,18 @@ public class GameScreen extends ScreenAdapter {
         );
     }
 
+    // Backpack is composed of several slots that are Textures and not Fonts
+    // Therefore a different FitViewport is needed to give UI-like display
+    // (Textures cannot be drawn on a ScreenViewport without a Stage (which is not implemented))
     private void drawInventory() {
+        backpackViewport.apply();
+        batch.setProjectionMatrix(backpackViewport.getCamera().combined);
+        batch.begin();
+
         backpack.draw(batch);
+        
+        batch.end();
     }
-    
     
     //Draws all item pickups in the game.
     private void drawItems() {
