@@ -373,21 +373,35 @@ public class GameScreen extends ScreenAdapter {
         } else if (gameTimer.isFinished()) {
             centreText = "YOU SURVIVED!\nPress R to Restart";
         } else if (gameTimer.isPaused()) {
-            centreText = "PAUSED\nPress ESC to play";
+            centreText = "PAUSED - press Esc to play\n\n" + TutorialScreen.CONTROLS_TEXT;
         }
 
-        if (centreText != null) {
-            String gameoverText = centreText;
+       if (centreText != null) {
+            float baseScaleX = font.getData().scaleX;
+            float baseScaleY = font.getData().scaleY;
             float gameoverX;
             float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
 
-            for (String line : gameoverText.split("\n")) {
-                gameoverLayout.setText(font, line);
+            String[] lines = centreText.split("\n");
+            for (int i = 0; i < lines.length; i++) {
+           // When paused, line 0 is the "PAUSED" header; everything after is the controls list
+                boolean smallLine = gameTimer.isPaused() && i > 0;
+                 if (smallLine) {
+                    font.getData().setScale(baseScaleX * 0.7f, baseScaleY * 0.7f);
+                } else {
+                    font.getData().setScale(baseScaleX, baseScaleY);
+                }
+
+                gameoverLayout.setText(font, lines[i]);   // measure AFTER setting scale
                 gameoverX = uiViewport.getWorldWidth()/2 - gameoverLayout.width/2;
                 font.draw(batch, gameoverLayout, gameoverX, gameoverY);
                 gameoverY -= gameoverLayout.height * 1.3f;
-            }
-        }
+       }
+
+        
+    font.getData().setScale(baseScaleX, baseScaleY); // restore for HUD / other screens
+    }
+
 
         batch.end();
 
