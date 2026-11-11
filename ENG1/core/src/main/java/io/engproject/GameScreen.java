@@ -73,7 +73,9 @@ public class GameScreen extends ScreenAdapter {
         viewport,                           // Movement boundries
         playerTexture,                      // Graphics
         interactAnimation);
+    
     private final Vector2 inputMovement = new Vector2();
+    private final Vector2 playerCentre = new Vector2();
 
     private final Array<Goose> geese = new Array<>();
     private final Array<Puddle> puddles = new Array<>();
@@ -229,6 +231,10 @@ public class GameScreen extends ScreenAdapter {
      */
     @Override
     public void render(float dt) {
+        // Allows the camera to follow the player
+        viewport.getCamera().position.set(player.getCentre(playerCentre), 0);
+        viewport.getCamera().update();
+
         // Enables high contrast mode with H
         if (Gdx.input.isKeyJustPressed(Input.Keys.H)) {
             AccessibilitySettings.toggleHighContrast();
