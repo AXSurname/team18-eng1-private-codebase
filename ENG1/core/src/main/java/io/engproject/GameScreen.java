@@ -404,6 +404,17 @@ public class GameScreen extends ScreenAdapter {
 
 
         batch.end();
+        
+        // Outline around the top-left stats
+        float h = uiViewport.getWorldHeight();
+        shapeRenderer.setProjectionMatrix(uiViewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.YELLOW);
+        shapeRenderer.rect(25f, h - 205f, 450f, 170f);   // x, y (bottom-left), width, height
+        shapeRenderer.end();
+
+        
+
 
         // Debugging
         drawDebug();
