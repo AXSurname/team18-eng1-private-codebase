@@ -31,9 +31,10 @@ public class GameScreen extends ScreenAdapter {
 
     // Asset filenames
     private static final String BKGND_FILENAME = "bkgnd.png";
-    private static final String PLAYER_FILENAME = "player.png";
+  
     private static final String FRIENDLY_GOOSE_FILENAME = "friendly_goose.png";
     private static final String ANGRY_GOOSE_FILENAME = "angry_goose.png";
+
     private static final String PUDDLE_FILENAME = "puddle.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
     private static final String BREAD_ITEM_FILENAME = "backpack_bread.png";
@@ -55,7 +56,7 @@ public class GameScreen extends ScreenAdapter {
 
     // Assets
     private final Texture bkgndTexture = loadTextureFromPath(BKGND_FILENAME);
-    private final Texture playerTexture = loadTextureFromPath(PLAYER_FILENAME);
+    private final Texture playerTexture = createPlayerTexture();
     private final Texture friendlyGooseTexture = loadTextureFromPath(FRIENDLY_GOOSE_FILENAME);
     private final Texture angryGooseTexture = loadTextureFromPath(ANGRY_GOOSE_FILENAME);
     private final Texture puddleTexture = loadTextureFromPath(PUDDLE_FILENAME);
@@ -141,6 +142,35 @@ public class GameScreen extends ScreenAdapter {
         pixmap.setColor(Color.WHITE);
         pixmap.drawRectangle(0, 0, 32, 32);
         pixmap.drawRectangle(1, 1, 30, 30);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    /**
+     * Creates the player sprite: a circle with a triangle pointer on its right side.
+     * The pointer faces right (0 degrees), and Player rotates it to face the
+     * direction the player is moving in. Made in code, so no extra asset
+     * file is needed.
+     *
+     * @return the player texture
+     */
+    private Texture createPlayerTexture() {
+        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setBlending(Pixmap.Blending.None);
+
+        // Transparent background
+        pixmap.setColor(0f, 0f, 0f, 0f);
+        pixmap.fill();
+
+        // Pointer: a dark grey triangle on the right, pointing right
+        pixmap.setColor(0.2f, 0.2f, 0.2f, 1f);
+        pixmap.fillTriangle(22, 9, 22, 23, 31, 16);
+
+        // Body: a white circle in the centre (white so high contrast works)
+        pixmap.setColor(1f, 1f, 1f, 1f);
+        pixmap.fillCircle(16, 16, 10);
 
         Texture texture = new Texture(pixmap);
         pixmap.dispose();

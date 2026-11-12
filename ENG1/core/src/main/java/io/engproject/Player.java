@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.graphics.g2d.Batch;
 
 /** The player avatar which the user contols, and is moved around the map to evade geese. */
 public class Player extends GameObject {
@@ -184,6 +185,27 @@ public class Player extends GameObject {
         }
 
         moveDirection.set(direction);
+    }
+    /**
+     * Draws the player rotated to face the direction it last moved in
+     * so the pointer shows where the player is facing.
+     * 
+     * @param batch the current screens batch
+     */
+    @Override
+    public void draw(Batch batch) {
+        if (texture == null) {
+            return;
+        }
+
+        batch.draw(texture,
+            rect.x, rect.y,                 //postion
+            rect.width / 2f, rect.height / 2f, //rotate aroudn the centre
+            rect.width, rect.height,        // size
+            1f, 1f,                            // scale
+            lastDirection.angleDeg(),       // rotation in degrees
+            0, 0, texture.getWidth(), texture.getHeight(), // use the whole img
+            false, false);                                 //no flipping
     }
 
     // Called every frame with the number of geese overlapping the player
