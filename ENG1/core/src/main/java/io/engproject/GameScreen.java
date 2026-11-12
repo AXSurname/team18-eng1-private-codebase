@@ -139,7 +139,7 @@ public class GameScreen extends ScreenAdapter {
 
     /**Creates the player sprite, This is going to be a circle with 
      * a triangle pointer on its right side.
-     * The pointer faces right (0 degrees), and Players rotates to face the
+     * The pointer faces right (0 degrees), and Player rotates to face the
      * direction the player is moving in. Made in the code, so no extra asset
      * files are needed,
      * 
@@ -157,7 +157,7 @@ public class GameScreen extends ScreenAdapter {
         pixmap.setColor(1f, 1f, 1f, 1f);
         pixmap.fillCircle(16, 16, 10);
 
-        //Pointer - a dark grey trangle on the right, pointing right
+        //Pointer - a dark grey triangle on the right, pointing right
         pixmap.setColor(0.2f, 0.2f, 0.2f, 1f);
         pixmap.fillTriangle(22, 9, 23, 31, 16);
 
