@@ -11,6 +11,7 @@ public class Goose extends GameObject {
     private static final float SPEED = 0.7f; // makes it so geese are esasier to outrun
     
     private final Player player;
+    private boolean friendly;
 
     /**
      * Creates a Goose.
@@ -30,6 +31,21 @@ public class Goose extends GameObject {
     }
 
     /**
+     * Makes this goose friendly and changes its colour. A friendly goose
+     * will move away from the player instead of attacking them.
+     *
+     * @param Texture the Texture representing a friendly goose
+     */
+    public void makeFriendly(Texture Texture) {
+        texture = Texture;
+        friendly = true;
+    }
+
+    public boolean isFriendly() {
+        return friendly;
+    }
+
+    /**
      * Updates the goose's movement.
      * 
      * @param dt deltatime
@@ -40,7 +56,7 @@ public class Goose extends GameObject {
         Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
 
 
-        if (player.megaphoneActive()) {
+        if (friendly || player.megaphoneActive()) {
             // Move away from player centre
             direction.scl(-1);
         }
