@@ -461,6 +461,7 @@ public class GameScreen extends ScreenAdapter {
         //float v = viewport.getWorldHeight() / WORLD_HEIGHT;
         //float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
 
+        // TO FIX PROPERLY
         float v = bkgndTexture.getWidth()*SCALE;
         float u2 = bkgndTexture.getHeight()*SCALE;
 
