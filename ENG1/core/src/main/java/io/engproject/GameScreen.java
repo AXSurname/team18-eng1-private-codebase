@@ -6,7 +6,6 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -24,6 +23,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * which it displays. Its game state is updated via its calls to a LogicManager.
  */
 public class GameScreen extends ScreenAdapter {
+    private static final float SCALE = 1/32f;
     private static final float WORLD_WIDTH = 16f;
     private static final float WORLD_HEIGHT = 9f;
     private static final float BOUND_MARGIN_FROM_VIEWPORT = 5f; // is in world units
@@ -61,7 +61,7 @@ public class GameScreen extends ScreenAdapter {
     private final Texture energyDrinkTexture = loadTextureFromPath(ENERGY_DRINK_FILENAME);
     private final Texture megaphoneTexture = loadTextureFromPath(MEGAPHONE_FILENAME);
     private final Texture slotTexture = createSlotTexture();
-    
+  
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
@@ -72,9 +72,10 @@ public class GameScreen extends ScreenAdapter {
     private final float[] worldBounds = getWorldBounds();
 
     private final Player player = new Player(
-        WORLD_WIDTH/2f, WORLD_HEIGHT/2f,    // Spawn position
-        worldBounds,                           // Movement boundries
-        playerTexture,                      // Graphics
+        WORLD_WIDTH/2f - (playerTexture.getWidth()/2)*SCALE,    // Spawn position
+        WORLD_HEIGHT/2f - (playerTexture.getHeight()/2)*SCALE,
+        worldBounds,        // Movement boundries
+        playerTexture,      // Graphics
         interactAnimation);
     
     private final Vector2 inputMovement = new Vector2();
@@ -100,7 +101,7 @@ public class GameScreen extends ScreenAdapter {
         this.font = gm.getFont();
         this.lm = new LogicManager(this);
 
-        bkgndTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+        bkgndTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         createPuddles();
     }
@@ -323,7 +324,7 @@ public class GameScreen extends ScreenAdapter {
     private void draw() {
         boolean highContrast = AccessibilitySettings.isHighContrast();
 
-        ScreenUtils.clear(Color.BLACK);
+        ScreenUtils.clear(Color.FOREST);
 
         // Render textures
         viewport.apply();
@@ -413,7 +414,8 @@ public class GameScreen extends ScreenAdapter {
             float baseScaleX = font.getData().scaleX;
             float baseScaleY = font.getData().scaleY;
             float gameoverX;
-            float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
+            //float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
+            float gameoverY = (uiViewport.getWorldHeight()/2) * 1.45f;
 
             String[] lines = centreText.split("\n");
             for (int i = 0; i < lines.length; i++) {
@@ -450,13 +452,17 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBackground() {
         // Calculate how many times the texture fits into the world dimensions
-        float v = viewport.getWorldHeight() / WORLD_HEIGHT;
-        float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
+        //float v = viewport.getWorldHeight() / WORLD_HEIGHT;
+        //float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
+
+        float v = bkgndTexture.getWidth()*SCALE;
+        float u2 = bkgndTexture.getHeight()*SCALE;
 
         // Draw with custom (u, v) coordinates to correctly repeat the texture
         batch.draw(bkgndTexture,
-            0, 0,
-            viewport.getWorldWidth(), viewport.getWorldHeight(),
+            -BOUND_MARGIN_FROM_VIEWPORT, -BOUND_MARGIN_FROM_VIEWPORT,
+            viewport.getWorldWidth() + BOUND_MARGIN_FROM_VIEWPORT*2,
+            viewport.getWorldHeight() + BOUND_MARGIN_FROM_VIEWPORT*2,
             0, v,
             u2, 0
         );

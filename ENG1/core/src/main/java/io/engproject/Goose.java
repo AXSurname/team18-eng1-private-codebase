@@ -65,6 +65,7 @@ public class Goose extends GameObject {
     // Helper method for spawn that calculates the position of the goose spawning.
     protected static float[] calcSpawn(Viewport viewport, Texture texture) {
         int edge = MathUtils.random(0, 3);
+        edge = 2;
         float edgeX = viewport.getCamera().position.x;
         float edgeY = viewport.getCamera().position.y;
         float x, y;
@@ -72,26 +73,26 @@ public class Goose extends GameObject {
         switch (edge) {
             // Spawn above the camera-view
             case 0:
-                x = (MathUtils.random(0f, 1f) * viewport.getWorldWidth()) + edgeX;
+                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
                 y = viewport.getWorldHeight() + edgeY;
                 break;
 
             // Spawn right of the camera-view
             case 1:
                 x = viewport.getWorldWidth() + edgeX;
-                y = MathUtils.random(0f, 1f) * viewport.getWorldHeight() + edgeY;
+                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
                 break;
 
             // Spawn below the camera-view
             case 2:
-                x = MathUtils.random(0f, 1f) * viewport.getWorldWidth() + edgeX;
-                y = (-texture.getHeight() * SCALE) + edgeY;
+                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
+                y = -texture.getHeight() * SCALE + (edge*viewport.getCamera().combined.getScaleY());
                 break;
 
             // Spawn left of the camera-view
             default:
                 x = (-texture.getWidth() * SCALE) + edgeX;
-                y = MathUtils.random(0f, 1f) * viewport.getWorldHeight() + edgeY;
+                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
         }
         
         return new float[]{x, y};
