@@ -53,11 +53,6 @@ public class BreadItem extends Item {
     }
 
     @Override
-    public boolean isOnCooldown() {
-        return player.isAlive() && !player.getCanInteract();
-    }
-
-    @Override
     protected void applyEffect()
     {
         player.setIsThrowingBread(true);

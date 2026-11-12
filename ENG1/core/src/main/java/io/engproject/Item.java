@@ -39,15 +39,6 @@ public abstract class Item {
         return icon;
     }
 
-    /**
-     * Returns whether the item is on a cooldown.
-    
-     * @return true when the item is on a cooldown
-     */
-    public boolean isOnCooldown() {
-        return false;
-    }
-
     protected abstract String getName();
 
     protected abstract boolean canUse();
