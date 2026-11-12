@@ -195,10 +195,10 @@ public class Player extends GameObject {
 
         batch.draw(texture.
             rect.x, rext.y,                 //postion
-            rect.width /2v, rect.height / 2f, //rotate aroudn the centre
+            rect.width / 2f, rect.height / 2f, //rotate aroudn the centre
             rect.width, rect.height,        // size
             1f, 1f,                            // scale
-            lastDirection,angleDeg(),       // rotation in degrees
+            lastDirection.angleDeg(),       // rotation in degrees
             0, 0, texture.getWidth(), texture.getHeight(), // use the whole img
             false, false);                                 //no flipping
     }
