@@ -33,6 +33,7 @@ public class Backpack extends GameObject {
     private static final float ICON_INSET = 0.1f;
     private static final float BREAD_COOLDOWN = 3f;
     private static final Color SELECTED_TINT = Color.YELLOW;
+    private static final Color COOLDOWN_OVERLAY = new Color(0f, 0f, 0f, 0.65f);
 
     private final Array<Item> items = new Array<>(MAX_SLOTS);
     private final Texture slotTexture;
@@ -216,6 +217,12 @@ public class Backpack extends GameObject {
                                 batch.setColor(Color.WHITE);
                         
                     }
+
+                if (items.get(slot).isOnCooldown()) {
+                    batch.setColor(COOLDOWN_OVERLAY);
+                    batch.draw(slotTexture, slotPosition.x, slotPosition.y, SLOT_SIZE, SLOT_SIZE);
+                    batch.setColor(Color.WHITE);
+                }
             }
         }
     }
