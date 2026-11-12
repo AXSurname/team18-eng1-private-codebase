@@ -3,11 +3,9 @@ package io.engproject;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -25,8 +23,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * which it displays. Its game state is updated via its calls to a LogicManager.
  */
 public class GameScreen extends ScreenAdapter {
+    private static final float SCALE = 1/32f;
     private static final float WORLD_WIDTH = 16f;
     private static final float WORLD_HEIGHT = 9f;
+    private static final float BOUND_MARGIN_FROM_VIEWPORT = 5f; // is in world units
     private static final boolean DRAW_DEBUG = false; // Manually set for debugging
 
     // Asset filenames
@@ -50,6 +50,7 @@ public class GameScreen extends ScreenAdapter {
     private final GlyphLayout gameoverLayout = new GlyphLayout();
 
     private final Viewport viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
+    private final Viewport backpackViewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT);
     private final Viewport uiViewport = new ScreenViewport();
 
     // Assets
@@ -62,20 +63,25 @@ public class GameScreen extends ScreenAdapter {
     private final Texture energyDrinkTexture = loadTextureFromPath(ENERGY_DRINK_FILENAME);
     private final Texture megaphoneTexture = loadTextureFromPath(MEGAPHONE_FILENAME);
     private final Texture slotTexture = createSlotTexture();
-    
+  
     private final Array<Texture> interactTextures = loadInteractTextures();
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
     // Inventory (no bag icon, so the slots start at BACKPACK_X)
-    private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
+    private final Backpack backpack;
 
     // Player and geese
+    private final float[] worldBounds = getWorldBounds();
+
     private final Player player = new Player(
-        WORLD_WIDTH/2f, WORLD_HEIGHT/2f,    // Spawn position
-        viewport,                           // Movement boundries
-        playerTexture,                      // Graphics
+        WORLD_WIDTH/2f - (playerTexture.getWidth()/2)*SCALE,    // Spawn position
+        WORLD_HEIGHT/2f - (playerTexture.getHeight()/2)*SCALE,
+        worldBounds,        // Movement boundries
+        playerTexture,      // Graphics
         interactAnimation);
+    
     private final Vector2 inputMovement = new Vector2();
+    private final Vector2 playerCentre = new Vector2();
 
     private final Array<Goose> geese = new Array<>();
     private final Array<Puddle> puddles = new Array<>();
@@ -95,9 +101,10 @@ public class GameScreen extends ScreenAdapter {
         this.shapeRenderer = gm.getShapeRenderer();
         this.batch = gm.getBatch();
         this.font = gm.getFont();
+        this.backpack = createBackPack();
         this.lm = new LogicManager(this);
-
-        bkgndTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+        
+        bkgndTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         createPuddles();
     }
@@ -140,6 +147,11 @@ public class GameScreen extends ScreenAdapter {
         return texture;
     }
 
+    // Must be created before LogicManager is set
+    private Backpack createBackPack() {
+        return new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture, font);
+    }
+
     protected Backpack getBackpack() {
         return backpack;
     }
@@ -147,6 +159,28 @@ public class GameScreen extends ScreenAdapter {
     private void createPuddles() {
         puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
         puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
+    }
+
+    /**
+     * Creates the world's boundaries the player cannot move past, which are calculated
+     * from the viewport's width and height, and the {@link GameScreen}'s defined
+     * {@link #BOUND_MARGIN_FROM_VIEWPORT} value (in world units).
+     * 
+     * @return an array of floats defined in the following order: {left-most X, right-most X,
+     * top Y, bottom Y}.
+     */
+    private float[] getWorldBounds() {
+        float viewportWidth = viewport.getWorldWidth();
+        float viewportHeight = viewport.getWorldHeight();
+
+        float[] bounds = {
+            -BOUND_MARGIN_FROM_VIEWPORT,
+            viewportWidth + BOUND_MARGIN_FROM_VIEWPORT,
+            -BOUND_MARGIN_FROM_VIEWPORT,
+            viewportHeight + BOUND_MARGIN_FROM_VIEWPORT
+        };
+
+        return bounds;
     }
 
     protected BreadItem getBread() {
@@ -221,6 +255,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         viewport.update(width, height, true);
         uiViewport.update(width, height, true);
+        backpackViewport.update(width, height, true);
     }
 
     // Resets the game when the screen is set as the current screen.
@@ -235,6 +270,10 @@ public class GameScreen extends ScreenAdapter {
      */
     @Override
     public void render(float dt) {
+        // Allows the camera to follow the player
+        viewport.getCamera().position.set(player.getCentre(playerCentre), 0);
+        viewport.getCamera().update();
+
         // Enables high contrast mode with H
         if (Gdx.input.isKeyJustPressed(Input.Keys.H)) {
             AccessibilitySettings.toggleHighContrast();
@@ -259,7 +298,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     /**
-     * Detects and processes the player's input on keyboard and mouse. Note it is the
+     * Detects and processes the player's input on keyboard. Note it is the
      * only exempt method in GameScreen to interact directly with Player's logic
      * directly to pass in input data.
      */
@@ -267,26 +306,25 @@ public class GameScreen extends ScreenAdapter {
         // Pass in movement input to Player
         inputMovement.setZero();
         
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             inputMovement.y += 1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             inputMovement.x -= 1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             inputMovement.y -= 1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             inputMovement.x += 1;
         }
 
         inputMovement.nor();
         player.changeDirection(inputMovement);
         
-        // Backpack: keys 1-5 select a slot, left-click or E uses the selected item
+        // Backpack: keys 1-5 select a slot, E uses the selected item
         backpack.update(Gdx.graphics.getDeltaTime());
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
-            || Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             backpack.useSelectedItem();
         }
     }
@@ -298,7 +336,7 @@ public class GameScreen extends ScreenAdapter {
     private void draw() {
         boolean highContrast = AccessibilitySettings.isHighContrast();
 
-        ScreenUtils.clear(Color.BLACK);
+        ScreenUtils.clear(Color.FOREST);
 
         // Render textures
         viewport.apply();
@@ -337,14 +375,19 @@ public class GameScreen extends ScreenAdapter {
         }
 
         batch.setColor(Color.WHITE);
-        drawInventory();
 
         batch.end();
+
+        // Render backpack slots and items (slot numbers UI not included)
+        drawInventory();
 
         // Render UI
         uiViewport.apply();
         batch.setProjectionMatrix(uiViewport.getCamera().combined);
         batch.begin();
+
+        // Render backpack slot number UI
+        backpack.drawSlotNumbers(batch);
 
         // Draw text that displays player life left
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
@@ -367,7 +410,6 @@ public class GameScreen extends ScreenAdapter {
                       uiViewport.getWorldHeight() - 240);
         }
 
-
         // Draw the time left (GameTimer)
         GameTimer gameTimer = lm.getGameTimer();
         String timeText = "Time left: " + gameTimer.getFormattedTime();
@@ -380,23 +422,43 @@ public class GameScreen extends ScreenAdapter {
         } else if (gameTimer.isFinished()) {
             centreText = "YOU SURVIVED!\nPress R to Restart";
         } else if (gameTimer.isPaused()) {
-            centreText = "PAUSED\nPress ESC to play";
+            centreText = "PAUSED - press Esc to play\n\n" + TutorialScreen.CONTROLS_TEXT;
         }
 
         if (centreText != null) {
-            String gameoverText = centreText;
+            float baseScaleX = font.getData().scaleX;
+            float baseScaleY = font.getData().scaleY;
             float gameoverX;
-            float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
+            float gameoverY = (uiViewport.getWorldHeight()/2) * 1.45f;
 
-            for (String line : gameoverText.split("\n")) {
-                gameoverLayout.setText(font, line);
+            String[] lines = centreText.split("\n");
+            for (int i = 0; i < lines.length; i++) {
+            // When paused, line 0 is the "PAUSED" header; everything after is the controls list
+                boolean smallLine = gameTimer.isPaused() && i > 0;
+                 if (smallLine) {
+                    font.getData().setScale(baseScaleX * 0.7f, baseScaleY * 0.7f);
+                } else {
+                    font.getData().setScale(baseScaleX, baseScaleY);
+                }
+
+                gameoverLayout.setText(font, lines[i]);   // measure AFTER setting scale
                 gameoverX = uiViewport.getWorldWidth()/2 - gameoverLayout.width/2;
                 font.draw(batch, gameoverLayout, gameoverX, gameoverY);
                 gameoverY -= gameoverLayout.height * 1.3f;
             }
+
+            font.getData().setScale(baseScaleX, baseScaleY); // restore for HUD / other screens
         }
 
         batch.end();
+        
+        // Outline around the top-left stats
+        float h = uiViewport.getWorldHeight();
+        shapeRenderer.setProjectionMatrix(uiViewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.YELLOW);
+        shapeRenderer.rect(25f, h - 205f, 450f, 170f);   // x, y (bottom-left), width, height
+        shapeRenderer.end();
 
         // Debugging
         drawDebug();
@@ -404,22 +466,31 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBackground() {
         // Calculate how many times the texture fits into the world dimensions
-        float v = viewport.getWorldHeight() / WORLD_HEIGHT;
-        float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
+        float v = bkgndTexture.getWidth()*SCALE;
+        float u2 = bkgndTexture.getHeight()*SCALE;
 
         // Draw with custom (u, v) coordinates to correctly repeat the texture
         batch.draw(bkgndTexture,
-            0, 0,
-            viewport.getWorldWidth(), viewport.getWorldHeight(),
+            -BOUND_MARGIN_FROM_VIEWPORT, -BOUND_MARGIN_FROM_VIEWPORT,
+            viewport.getWorldWidth() + BOUND_MARGIN_FROM_VIEWPORT*2,
+            viewport.getWorldHeight() + BOUND_MARGIN_FROM_VIEWPORT*2,
             0, v,
             u2, 0
         );
     }
 
+    // Backpack is composed of several slots that are Textures and not Fonts
+    // Therefore a different FitViewport is needed to give UI-like display
+    // (Textures cannot be drawn on a ScreenViewport without a Stage (which is not implemented))
     private void drawInventory() {
+        backpackViewport.apply();
+        batch.setProjectionMatrix(backpackViewport.getCamera().combined);
+        batch.begin();
+
         backpack.draw(batch);
+
+        batch.end();
     }
-    
     
     //Draws all item pickups in the game.
     private void drawItems() {

@@ -147,31 +147,33 @@ public class Goose extends GameObject {
     // Helper method for spawn that calculates the position of the goose spawning.
     protected static float[] calcSpawn(Viewport viewport, Texture texture) {
         int edge = MathUtils.random(0, 3);
+        float camX = viewport.getCamera().position.x;
+        float camY = viewport.getCamera().position.y;
         float x, y;
 
         switch (edge) {
-            // Spawn at top of map
+            // Spawn above the camera-view
             case 0:
-                x = MathUtils.random(0f, 1f) * viewport.getWorldWidth();
-                y = viewport.getWorldHeight();
+                x = camX + viewport.getWorldWidth() * (MathUtils.random(0f, 1f)-0.5f);
+                y = camY + viewport.getWorldHeight()/2;
                 break;
 
-            // Spawn at right of map
+            // Spawn right of the camera-view
             case 1:
-                x = viewport.getWorldWidth();
-                y = MathUtils.random(0f, 1f) * viewport.getWorldHeight();
+                x = camX + viewport.getWorldWidth()/2;
+                y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
                 break;
 
-            // Spawn at bottom of map
+            // Spawn below the camera-view
             case 2:
-                x = MathUtils.random(0f, 1f) * viewport.getWorldWidth();
-                y = -texture.getHeight() * SCALE;
+                x = camX + viewport.getWorldWidth() * (MathUtils.random(0f, 1f)-0.5f);
+                y = camY - viewport.getWorldHeight()/2 - texture.getHeight()*SCALE;
                 break;
 
-            // Spawn at left of map
+            // Spawn left of the camera-view
             default:
-                x = -texture.getWidth() * SCALE;
-                y = MathUtils.random(0f, 1f) * viewport.getWorldHeight();
+                x = camX - viewport.getWorldWidth()/2 - texture.getWidth()*SCALE;
+                y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
         }
         
         return new float[]{x, y};

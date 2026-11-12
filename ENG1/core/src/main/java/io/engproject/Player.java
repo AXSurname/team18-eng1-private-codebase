@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 /** The player avatar which the user contols, and is moved around the map to evade geese. */
 public class Player extends GameObject {
@@ -17,18 +16,24 @@ public class Player extends GameObject {
     // EnergyDrinkItem constants
     private static final float BOOSTED_SPEED = 4f;
     private static final float BOOST_DURATION = 5f;
+    
+    // MegaphoneItem constant
+    private static final float MEGAPHONE_DURATION = 5f;
 
     // Goose drag multipliers
     private static final float SLOW_PER_GOOSE = 0.8f;     // Multiply speed per touching Goose
     private static final float MIN_SPEED_MODIFIER = 0.3f; // Never slower than 30% speed
     
     // General
-    private final Viewport viewport;
-
-    private Vector2 origin;
     private final Vector2 moveDirection = new Vector2();
     private final Vector2 lastDirection = new Vector2(1, 0); // Facing; default is right
-    private static final float MEGAPHONE_DURATION = 5f;
+    private Vector2 origin;
+
+    /**
+     * Bounds defined by coordinates the player cannot move past.
+     * The elements are in the following order: {minX, maxX, minY, maxY}.
+     * */
+    private final float[] bounds;
 
     private float boostTimer;
     private float megaphoneTimer;
@@ -48,15 +53,15 @@ public class Player extends GameObject {
      * 
      * @param x        the initial x-position of the player
      * @param y        the initial y-position of the player
-     * @param viewport the current screen's viewport
+     * @param bounds   an array of floats representing the coordinates of the world's bounds
      * @param texture  the image representing the player
      * @param interactAnimation
      * the animation frames for the player's possible interaction with the geese.
      */
-    public Player(float x, float y, Viewport viewport,
+    public Player(float x, float y, float[] bounds,
                   Texture texture, Animation<Texture> interactAnimation) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
-        this.viewport = viewport;
+        this.bounds = bounds;
         this.origin = new Vector2(x, y);
         this.interactAnimation = interactAnimation;
     }
@@ -162,8 +167,8 @@ public class Player extends GameObject {
         float newY = rect.getY() + moveDirection.y * speed * dt;
 
         // Clamp to screen bounds
-        newX = MathUtils.clamp(newX, 0, viewport.getWorldWidth() - rect.getWidth());
-        newY = MathUtils.clamp(newY, 0, viewport.getWorldHeight() - rect.getHeight());
+        newX = MathUtils.clamp(newX, bounds[0], bounds[1] - rect.getWidth());
+        newY = MathUtils.clamp(newY, bounds[2], bounds[3] - rect.getHeight());
 
         rect.setPosition(newX, newY);
     }
