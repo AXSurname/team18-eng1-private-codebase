@@ -1,4 +1,3 @@
-angry_goose.png
 backpack_bread.png
 bkgnd.png
 bread_0.png
@@ -9,7 +8,7 @@ energydrink.png
 font/Info.txt
 font/Matcha Style.otf
 font/Matcha Style.ttf
-friendly_goose.png
+goose.png
 libgdx.png
 megaphone.png
 player.png
