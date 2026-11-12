@@ -15,6 +15,10 @@ public class BossGoose extends Goose {
 
     @Override
     public void update(float dt) {
+        if (!isFeeding(dt)) {
+            return;
+        }
+
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
         Vector2 direction = this.getPlayer().rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
         if (this.getPlayer().megaphoneActive()) {

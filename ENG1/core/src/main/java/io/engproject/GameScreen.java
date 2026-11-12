@@ -32,7 +32,8 @@ public class GameScreen extends ScreenAdapter {
     // Asset filenames
     private static final String BKGND_FILENAME = "bkgnd.png";
     private static final String PLAYER_FILENAME = "player.png";
-    private static final String GOOSE_FILENAME = "goose.png";
+    private static final String FRIENDLY_GOOSE_FILENAME = "friendly_goose.png";
+    private static final String ANGRY_GOOSE_FILENAME = "angry_goose.png";
     private static final String PUDDLE_FILENAME = "puddle.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
     private static final String BREAD_ITEM_FILENAME = "backpack_bread.png";
@@ -54,7 +55,8 @@ public class GameScreen extends ScreenAdapter {
     // Assets
     private final Texture bkgndTexture = loadTextureFromPath(BKGND_FILENAME);
     private final Texture playerTexture = loadTextureFromPath(PLAYER_FILENAME);
-    private final Texture gooseTexture = loadTextureFromPath(GOOSE_FILENAME);
+    private final Texture friendlyGooseTexture = loadTextureFromPath(FRIENDLY_GOOSE_FILENAME);
+    private final Texture angryGooseTexture = loadTextureFromPath(ANGRY_GOOSE_FILENAME);
     private final Texture puddleTexture = loadTextureFromPath(PUDDLE_FILENAME);
     private final Texture breadItemTexture = loadTextureFromPath(BREAD_ITEM_FILENAME);
     private final Texture energyDrinkTexture = loadTextureFromPath(ENERGY_DRINK_FILENAME);
@@ -186,6 +188,10 @@ public class GameScreen extends ScreenAdapter {
         return geese;
     }
 
+    protected Texture getFriendlyGooseTexture() {
+        return friendlyGooseTexture;
+    }
+
     protected Array<Puddle> getPuddles() {
         return puddles;
     }
@@ -199,7 +205,7 @@ public class GameScreen extends ScreenAdapter {
      * @return a goose that now exists in the game world.
      */
     protected Goose getGoose() {
-        return Goose.spawn(viewport, gooseTexture, player);
+        return Goose.spawn(viewport, angryGooseTexture, player);
     }
     
     /**
@@ -207,7 +213,7 @@ public class GameScreen extends ScreenAdapter {
      * @return a boss goose that now exists in the game world.
      */
     protected BossGoose getBossGoose() {
-        return BossGoose.spawn(viewport, gooseTexture, player);
+        return BossGoose.spawn(viewport, angryGooseTexture, player);
     }
 
     // Updates both viewports' window size if configuration.setResizable() is changed to true.
@@ -456,7 +462,8 @@ public class GameScreen extends ScreenAdapter {
         // Dispose textures
         bkgndTexture.dispose();
         playerTexture.dispose();
-        gooseTexture.dispose();
+        angryGooseTexture.dispose();
+        friendlyGooseTexture.dispose();
         puddleTexture.dispose();
         breadItemTexture.dispose();
         energyDrinkTexture.dispose();
