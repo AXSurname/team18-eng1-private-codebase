@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class GameScreen extends ScreenAdapter {
     private static final float WORLD_WIDTH = 16f;
     private static final float WORLD_HEIGHT = 9f;
+    private static final float BOUND_MARGIN_FROM_VIEWPORT = 5f; // is in world units
     private static final boolean DRAW_DEBUG = false; // Manually set for debugging
 
     // Asset filenames
@@ -68,9 +69,11 @@ public class GameScreen extends ScreenAdapter {
     private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
 
     // Player and geese
+    private final float[] worldBounds = getWorldBounds();
+
     private final Player player = new Player(
         WORLD_WIDTH/2f, WORLD_HEIGHT/2f,    // Spawn position
-        viewport,                           // Movement boundries
+        worldBounds,                           // Movement boundries
         playerTexture,                      // Graphics
         interactAnimation);
     
@@ -147,6 +150,28 @@ public class GameScreen extends ScreenAdapter {
     private void createPuddles() {
         puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
         puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
+    }
+
+    /**
+     * Creates the world's boundaries the player cannot move past, which are calculated
+     * from the viewport's width and height, and the {@link GameScreen}'s defined
+     * {@link #BOUND_MARGIN_FROM_VIEWPORT} value (in world units).
+     * 
+     * @return an array of floats defined in the following order: {left-most X, right-most X,
+     * top Y, bottom Y}.
+     */
+    private float[] getWorldBounds() {
+        float viewportWidth = viewport.getWorldWidth();
+        float viewportHeight = viewport.getWorldHeight();
+
+        float[] output = {
+            -BOUND_MARGIN_FROM_VIEWPORT,
+            viewportWidth + BOUND_MARGIN_FROM_VIEWPORT,
+            -BOUND_MARGIN_FROM_VIEWPORT,
+            viewportHeight + BOUND_MARGIN_FROM_VIEWPORT
+        };
+
+        return output;
     }
 
     protected BreadItem getBread() {
