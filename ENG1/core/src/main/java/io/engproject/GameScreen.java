@@ -68,7 +68,7 @@ public class GameScreen extends ScreenAdapter {
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
     // Inventory (no bag icon, so the slots start at BACKPACK_X)
-    private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
+    private final Backpack backpack;
 
     // Player and geese
     private final float[] worldBounds = getWorldBounds();
@@ -101,8 +101,9 @@ public class GameScreen extends ScreenAdapter {
         this.shapeRenderer = gm.getShapeRenderer();
         this.batch = gm.getBatch();
         this.font = gm.getFont();
+        this.backpack = createBackPack();
         this.lm = new LogicManager(this);
-
+        
         bkgndTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         createPuddles();
@@ -144,6 +145,11 @@ public class GameScreen extends ScreenAdapter {
         Texture texture = new Texture(pixmap);
         pixmap.dispose();
         return texture;
+    }
+
+    // Must be created before LogicManager is set
+    private Backpack createBackPack() {
+        return new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture, font);
     }
 
     protected Backpack getBackpack() {
@@ -372,13 +378,16 @@ public class GameScreen extends ScreenAdapter {
 
         batch.end();
 
-        // Render backpack
+        // Render backpack slots and items (slot numbers UI not included)
         drawInventory();
 
         // Render UI
         uiViewport.apply();
         batch.setProjectionMatrix(uiViewport.getCamera().combined);
         batch.begin();
+
+        // Render backpack slot number UI
+        backpack.drawSlotNumbers(batch);
 
         // Draw text that displays player life left
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
@@ -420,7 +429,6 @@ public class GameScreen extends ScreenAdapter {
             float baseScaleX = font.getData().scaleX;
             float baseScaleY = font.getData().scaleY;
             float gameoverX;
-            //float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
             float gameoverY = (uiViewport.getWorldHeight()/2) * 1.45f;
 
             String[] lines = centreText.split("\n");
@@ -484,7 +492,7 @@ public class GameScreen extends ScreenAdapter {
         batch.begin();
 
         backpack.draw(batch);
-        
+
         batch.end();
     }
     
