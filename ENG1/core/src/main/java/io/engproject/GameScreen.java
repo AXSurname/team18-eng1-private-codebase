@@ -153,14 +153,15 @@ public class GameScreen extends ScreenAdapter {
         pixmap.setColor(0f, 0f, 0f, 0f);
         pixmap.fill();
 
-        //Body - a white circle in the centre (white so high contrast works)
-        pixmap.setColor(1f, 1f, 1f, 1f);
-        pixmap.fillCircle(16, 16, 10);
-
         //Pointer - a dark grey triangle on the right, pointing right
         pixmap.setColor(0.2f, 0.2f, 0.2f, 1f);
         pixmap.fillTriangle(22, 9, 22, 23, 31, 16);
 
+        //Body - a white circle in the centre (white so high contrast works)
+        pixmap.setColor(1f, 1f, 1f, 1f);
+        pixmap.fillCircle(16, 16, 10);
+
+        
         Texture texture = new Texture(pixmap);
         pixmap.dispose();
         return texture;
