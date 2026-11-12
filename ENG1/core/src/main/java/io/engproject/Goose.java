@@ -7,10 +7,13 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /** An enemy for the player to evade. */
 public class Goose extends GameObject {
+    private final GameTimer gameTimer;
     private static final float SCALE = 1/32f;
-    private static final float SPEED = 0.7f; // makes it so geese are esasier to outrun
+    private static final float STARTING_SPEED = 0.7f; // makes it so geese are esasier to outrun
+    private static final float MAX_SPEED = 2.0f;
     
     private final Player player;
+    private boolean friendly;
 
     /**
      * Creates a Goose.
@@ -20,13 +23,36 @@ public class Goose extends GameObject {
      * @param texture the image representing the goose which is displayed
      * @param player  the target the goose moves towards
      */
-    public Goose(float x, float y, Texture texture, Player player) {
+    public Goose(float x, float y, Texture texture, Player player, GameTimer gameTimer) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.player = player;
+        this.gameTimer = gameTimer;
     }
 
     public Player getPlayer() {
         return player;
+    }
+
+    /**
+     * Makes this goose friendly and changes its colour. A friendly goose
+     * will move away from the player instead of attacking them.
+     *
+     * @param Texture the Texture representing a friendly goose
+     */
+    public void makeFriendly(Texture Texture) {
+        texture = Texture;
+        friendly = true;
+    }
+
+    public boolean isFriendly() {
+        return friendly;
+    }
+
+    public float currentSpeed() {
+        float passedTime = 300f - gameTimer.getTimeRemaining();
+        float progress = MathUtils.clamp(passedTime/300f, 0f, 1f);
+
+        return STARTING_SPEED + (MAX_SPEED - STARTING_SPEED) * progress;
     }
 
     /**
@@ -37,10 +63,10 @@ public class Goose extends GameObject {
     @Override
     public void update(float dt) {
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
-        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
+        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * dt);
 
 
-        if (player.megaphoneActive()) {
+        if (friendly || player.megaphoneActive()) {
             // Move away from player centre
             direction.scl(-1);
         }
@@ -56,40 +82,43 @@ public class Goose extends GameObject {
      * @param player   the target the goose moves towards
      * @return the spawned goose
      */
-    public static Goose spawn(Viewport viewport, Texture texture, Player player) {
+    public static Goose spawn(Viewport viewport, Texture texture, Player player, GameTimer gameTimer) {
         float[] spawnPos = calcSpawn(viewport, texture);
 
-        return new Goose(spawnPos[0], spawnPos[1], texture, player);
+        return new Goose(spawnPos[0], spawnPos[1], texture, player, gameTimer);
     }
 
     // Helper method for spawn that calculates the position of the goose spawning.
     protected static float[] calcSpawn(Viewport viewport, Texture texture) {
         int edge = MathUtils.random(0, 3);
+        edge = 2;
+        float edgeX = viewport.getCamera().position.x;
+        float edgeY = viewport.getCamera().position.y;
         float x, y;
 
         switch (edge) {
-            // Spawn at top of map
+            // Spawn above the camera-view
             case 0:
-                x = MathUtils.random(0f, 1f) * viewport.getWorldWidth();
-                y = viewport.getWorldHeight();
+                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
+                y = viewport.getWorldHeight() + edgeY;
                 break;
 
-            // Spawn at right of map
+            // Spawn right of the camera-view
             case 1:
-                x = viewport.getWorldWidth();
-                y = MathUtils.random(0f, 1f) * viewport.getWorldHeight();
+                x = viewport.getWorldWidth() + edgeX;
+                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
                 break;
 
-            // Spawn at bottom of map
+            // Spawn below the camera-view
             case 2:
-                x = MathUtils.random(0f, 1f) * viewport.getWorldWidth();
-                y = -texture.getHeight() * SCALE;
+                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
+                y = -texture.getHeight() * SCALE + (edge*viewport.getCamera().combined.getScaleY());
                 break;
 
-            // Spawn at left of map
+            // Spawn left of the camera-view
             default:
-                x = -texture.getWidth() * SCALE;
-                y = MathUtils.random(0f, 1f) * viewport.getWorldHeight();
+                x = (-texture.getWidth() * SCALE) + edgeX;
+                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
         }
         
         return new float[]{x, y};

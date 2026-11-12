@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -17,6 +18,9 @@ import java.util.Optional;
  * The backpack is a {@link GameObject}: its own rectangle and texture draw the bag icon
  * (the texture may be null for no icon), and a row of slots is drawn beside it.
  * Keys 1-5 select a slot; {@link #useSelectedItem()} uses the item in it.
+ * 
+ * Bread has a cooldown after use, displaed as a wite traslucent overlay over item in a
+ * backpack
  *
  * Textures are owned by the screen that created them, not by this class.
  */
@@ -27,16 +31,20 @@ public class Backpack extends GameObject {
     private static final float SLOT_SIZE = 1f;
     private static final float SLOT_PADDING = 0.2f;
     private static final float ICON_INSET = 0.1f;
+    private static final float BREAD_COOLDOWN = 3f;
     private static final Color SELECTED_TINT = Color.YELLOW;
+    private static final Color COOLDOWN_OVERLAY = new Color(0f, 0f, 0f, 0.65f);
 
     private final Array<Item> items = new Array<>(MAX_SLOTS);
     private final Texture slotTexture;
+    private final Texture whiteTexture;
     private final Vector2 slotPosition = new Vector2();
 
     private int selectedSlot = 0;
+    private float cooldownTimer = 0f;
 
     /**
-     * Creates a backpack.
+     * Creates a backpack and a texture for the bread cooldown.
      *
      * @param x           x position of the bag icon
      * @param y           y position of the bag icon
@@ -48,6 +56,11 @@ public class Backpack extends GameObject {
     public Backpack(float x, float y, float w, float h, Texture texture, Texture slotTexture) {
         super(x, y, w, h, texture);
         this.slotTexture = Objects.requireNonNull(slotTexture, "slotTexture");
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        whiteTexture = new Texture(pixmap);
+        pixmap.dispose();
     }
 
     /**
@@ -101,6 +114,13 @@ public class Backpack extends GameObject {
     public boolean useSelectedItem() {
         Optional<Item> selected = getSelectedItem();
 
+        // NEW: Prevent bread from being used during its cooldown
+        if (selected.isPresent()
+                && selected.get() instanceof BreadItem
+                && cooldownTimer > 0) {
+            return false;
+        }
+
         if (selected.isPresent()) {
             if (selected.get().getClass() != BreadItem.class) {
                 if (selected.get().use()) {
@@ -109,11 +129,14 @@ public class Backpack extends GameObject {
                 }
 
             } else if (((BreadItem) selected.get()).use()) {
+                // NEW: Start cooldown after successfully using bread
+                cooldownTimer = BREAD_COOLDOWN;
                 return true;
             }
         }
         return false;
     }
+
 
     public boolean contains(String itemName) {
         for (var item : items) {
@@ -154,6 +177,7 @@ public class Backpack extends GameObject {
     // Polls the number keys 1-5 to change the selected slot.
     @Override
     public void update(float deltaTime) {
+        cooldownTimer = Math.max(0, cooldownTimer - deltaTime);
         for (int slot = 0; slot < MAX_SLOTS; slot++) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1 + slot)) {
                 selectSlot(slot);
@@ -180,6 +204,25 @@ public class Backpack extends GameObject {
                     slotPosition.y + ICON_INSET,
                     iconSize,
                     iconSize);
+                    if (items.get(slot) instanceof BreadItem && cooldownTimer > 0) {
+                        float progress = cooldownTimer / BREAD_COOLDOWN;
+                        float overlayHeight = iconSize * progress;
+                        batch.setColor(1f, 1f, 1f, 0.5f);
+                        batch.draw (
+                                whiteTexture,
+                                slotPosition.x + ICON_INSET,
+                                slotPosition.y + ICON_INSET + iconSize - overlayHeight,
+                                iconSize,
+                                overlayHeight);
+                                batch.setColor(Color.WHITE);
+                        
+                    }
+
+                if (items.get(slot).isOnCooldown()) {
+                    batch.setColor(COOLDOWN_OVERLAY);
+                    batch.draw(slotTexture, slotPosition.x, slotPosition.y, SLOT_SIZE, SLOT_SIZE);
+                    batch.setColor(Color.WHITE);
+                }
             }
         }
     }
@@ -188,5 +231,10 @@ public class Backpack extends GameObject {
     private void computeSlotPosition(int slot, Vector2 target) {
         float startX = rect.x + rect.width + SLOT_PADDING;
         target.set(startX + slot * (SLOT_SIZE + SLOT_PADDING), rect.y);
+    }
+
+    // Disposes of a cooldown texture
+    public void dispose() {
+        whiteTexture.dispose();
     }
 }
