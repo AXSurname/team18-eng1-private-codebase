@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.MathUtils;
  */
 public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
-    private static final int MAX_ANGRY_GEESE = 15;   // no new geese spawn while this many are active
+    private static final int MAX_GEESE = 15;   // no new geese spawn while this many are active
     private static final float DAMAGE_PER_SEC = 1f;
 
     //Time between spawn of items.
@@ -108,14 +108,7 @@ public class LogicManager {
 
     /** Calculates whether another goose should be spawned, and spawns it if so. */
     private void spawnGoose() {
-        int angryGooseCount = 0;
-        for (Goose goose : geese) {
-            if (!goose.isFriendly()) {
-                angryGooseCount++;
-            }
-        }
-
-        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && angryGooseCount < MAX_ANGRY_GEESE) {
+        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && geese.size < MAX_GEESE) {
             gooseSpawnTimer = 0f;
 
             Goose goose = game.getGoose();
@@ -251,10 +244,25 @@ public class LogicManager {
             goose.update(dt);
         }
 
+        separateGeese();
         checkCollision(dt);
 
         startEvent();
         spawnItem();
+    }
+
+    private void separateGeese() {
+        for (int pass = 0; pass < 3; pass++) {
+            for (int i = 0; i < geese.size; i++) {
+                Goose goose1 = geese.get(i);
+                for (int j = i + 1; j < geese.size; j++) {
+                    Goose goose2 = geese.get(j);
+                    if (goose1.overlaps(goose2)) {
+                        goose1.separate(goose2);
+                    }
+                }
+            }
+        }
     }
 
 }
