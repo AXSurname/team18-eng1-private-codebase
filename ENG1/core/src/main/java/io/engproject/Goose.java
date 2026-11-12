@@ -55,7 +55,6 @@ public class Goose extends GameObject {
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
         Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
 
-
         if (friendly || player.megaphoneActive()) {
             // Move away from player centre
             direction.scl(-1);
@@ -81,34 +80,33 @@ public class Goose extends GameObject {
     // Helper method for spawn that calculates the position of the goose spawning.
     protected static float[] calcSpawn(Viewport viewport, Texture texture) {
         int edge = MathUtils.random(0, 3);
-        edge = 2;
-        float edgeX = viewport.getCamera().position.x;
-        float edgeY = viewport.getCamera().position.y;
+        float camX = viewport.getCamera().position.x;
+        float camY = viewport.getCamera().position.y;
         float x, y;
 
         switch (edge) {
             // Spawn above the camera-view
             case 0:
-                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
-                y = viewport.getWorldHeight() + edgeY;
+                x = camX + viewport.getWorldWidth() * (MathUtils.random(0f, 1f)-0.5f);
+                y = camY + viewport.getWorldHeight()/2;
                 break;
 
             // Spawn right of the camera-view
             case 1:
-                x = viewport.getWorldWidth() + edgeX;
-                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
+                x = camX + viewport.getWorldWidth()/2;
+                y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
                 break;
 
             // Spawn below the camera-view
             case 2:
-                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
-                y = -texture.getHeight() * SCALE + (edge*viewport.getCamera().combined.getScaleY());
+                x = camX + viewport.getWorldWidth() * (MathUtils.random(0f, 1f)-0.5f);
+                y = camY - viewport.getWorldHeight()/2 - texture.getHeight()*SCALE;
                 break;
 
             // Spawn left of the camera-view
             default:
-                x = (-texture.getWidth() * SCALE) + edgeX;
-                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
+                x = camX - viewport.getWorldWidth()/2 - texture.getWidth()*SCALE;
+                y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
         }
         
         return new float[]{x, y};

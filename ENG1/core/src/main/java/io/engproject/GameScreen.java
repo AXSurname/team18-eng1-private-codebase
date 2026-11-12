@@ -173,14 +173,14 @@ public class GameScreen extends ScreenAdapter {
         float viewportWidth = viewport.getWorldWidth();
         float viewportHeight = viewport.getWorldHeight();
 
-        float[] output = {
+        float[] bounds = {
             -BOUND_MARGIN_FROM_VIEWPORT,
             viewportWidth + BOUND_MARGIN_FROM_VIEWPORT,
             -BOUND_MARGIN_FROM_VIEWPORT,
             viewportHeight + BOUND_MARGIN_FROM_VIEWPORT
         };
 
-        return output;
+        return bounds;
     }
 
     protected BreadItem getBread() {
@@ -466,10 +466,6 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBackground() {
         // Calculate how many times the texture fits into the world dimensions
-        //float v = viewport.getWorldHeight() / WORLD_HEIGHT;
-        //float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
-
-        // TO FIX PROPERLY
         float v = bkgndTexture.getWidth()*SCALE;
         float u2 = bkgndTexture.getHeight()*SCALE;
 
