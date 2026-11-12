@@ -158,7 +158,7 @@ public class GameScreen extends ScreenAdapter {
         pixmap.fillCircle(16, 16, 10);
 
         //Pointer - a dark grey trangle on the right, pointing right
-        pixmap.setColor(0.2f, 0.2f, 0.2f, 0.2f, 1f);
+        pixmap.setColor(0.2f, 0.2f, 0.2f, 1f);
 
         Texture texture = new Texture(pixmap);
         pixmap.dispose();

@@ -193,8 +193,8 @@ public class Player extends GameObject {
             return;
         }
 
-        batch.draw(texture.
-            rect.x, rext.y,                 //postion
+        batch.draw(texture,
+            rect.x, rect.y,                 //postion
             rect.width / 2f, rect.height / 2f, //rotate aroudn the centre
             rect.width, rect.height,        // size
             1f, 1f,                            // scale
