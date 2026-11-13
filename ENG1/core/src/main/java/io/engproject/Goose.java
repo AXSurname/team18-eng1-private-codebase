@@ -9,11 +9,15 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class Goose extends GameObject {
     private final GameTimer gameTimer;
     private static final float SCALE = 1/32f;
-    private static final float STARTING_SPEED = 0.7f; // makes it so geese are esasier to outrun
+    private static final float STARTING_SPEED = 0.7f;
     private static final float MAX_SPEED = 2.0f;
+    private static final float FEEDING_DURATION = 3f;
     
     private final Player player;
+    private final Texture angryGooseTexture;
     private boolean friendly;
+    private float feedingTimer;
+    private boolean isOverlapping = false;
 
     /**
      * Creates a Goose.
@@ -27,6 +31,7 @@ public class Goose extends GameObject {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.player = player;
         this.gameTimer = gameTimer;
+        this.angryGooseTexture = texture;
     }
 
     public Player getPlayer() {
@@ -35,13 +40,18 @@ public class Goose extends GameObject {
 
     /**
      * Makes this goose friendly and changes its colour. A friendly goose
-     * will move away from the player instead of attacking them.
+     * stops to feed before turning angry and chasing the player again.
      *
-     * @param Texture the Texture representing a friendly goose
+     * @param texture the Texture representing a friendly goose
      */
-    public void makeFriendly(Texture Texture) {
-        texture = Texture;
+    public void makeFriendly(Texture texture) {
+        if (friendly) {
+            return;
+        }
+
+        this.texture = texture;
         friendly = true;
+        feedingTimer = FEEDING_DURATION;
     }
 
     public boolean isFriendly() {
@@ -51,8 +61,39 @@ public class Goose extends GameObject {
     public float currentSpeed() {
         float passedTime = 300f - gameTimer.getTimeRemaining();
         float progress = MathUtils.clamp(passedTime/300f, 0f, 1f);
-
         return STARTING_SPEED + (MAX_SPEED - STARTING_SPEED) * progress;
+    }
+  
+    public void separate(Goose other) {
+    if (!overlaps(other)) {
+        return;
+    }
+
+    float pushX;
+    float pushY;
+
+    if (rect.x < other.rect.x) {
+        pushX = -0.01f;
+    }   
+    else {
+    pushX = 0.01f;
+    }
+
+    if (rect.y < other.rect.y) {
+        pushY = -0.01f;
+    }
+    else {
+        pushY = 0.01f;
+    }
+
+    rect.x += pushX;
+    rect.y += pushY;
+    other.rect.x -= pushX;
+    other.rect.y -= pushY;
+}
+
+    public boolean isOverlapping() {
+        return isOverlapping;
     }
 
     /**
@@ -62,16 +103,40 @@ public class Goose extends GameObject {
      */
     @Override
     public void update(float dt) {
+        if (!isFeeding(dt)) {
+            return;
+        }
+
+
+
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
         Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * dt);
 
 
-        if (friendly || player.megaphoneActive()) {
-            // Move away from player centre
+        if (player.megaphoneActive()) {
+            // Move away from player centre.
             direction.scl(-1);
         }
-        // Move towards player centre
         rect.setPosition(rect.getX() + direction.x, rect.getY() + direction.y);
+    }
+
+    /**
+     * Updates feeding and returns if a goose should move this frame.
+     *
+     * @param dt deltatime
+     * @return false while the goose is feeding
+     */
+    protected boolean isFeeding(float dt) {
+        if (!friendly) {
+            return true;
+        }
+
+        feedingTimer -= dt;
+        if (feedingTimer <= 0f) {
+            friendly = false;
+            texture = angryGooseTexture;
+        }
+        return false;
     }
 
     /**
@@ -91,36 +156,37 @@ public class Goose extends GameObject {
     // Helper method for spawn that calculates the position of the goose spawning.
     protected static float[] calcSpawn(Viewport viewport, Texture texture) {
         int edge = MathUtils.random(0, 3);
-        edge = 2;
-        float edgeX = viewport.getCamera().position.x;
-        float edgeY = viewport.getCamera().position.y;
+        float camX = viewport.getCamera().position.x;
+        float camY = viewport.getCamera().position.y;
         float x, y;
 
         switch (edge) {
             // Spawn above the camera-view
             case 0:
-                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
-                y = viewport.getWorldHeight() + edgeY;
+                x = camX + viewport.getWorldWidth() * (MathUtils.random(0f, 1f)-0.5f);
+                y = camY + viewport.getWorldHeight()/2;
                 break;
 
             // Spawn right of the camera-view
             case 1:
-                x = viewport.getWorldWidth() + edgeX;
-                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
+                x = camX + viewport.getWorldWidth()/2;
+                y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
                 break;
 
             // Spawn below the camera-view
             case 2:
-                x = MathUtils.random(0f, 1f) * (viewport.getWorldWidth() + edgeX);
-                y = -texture.getHeight() * SCALE + (edge*viewport.getCamera().combined.getScaleY());
+                x = camX + viewport.getWorldWidth() * (MathUtils.random(0f, 1f)-0.5f);
+                y = camY - viewport.getWorldHeight()/2 - texture.getHeight()*SCALE;
                 break;
 
             // Spawn left of the camera-view
             default:
-                x = (-texture.getWidth() * SCALE) + edgeX;
-                y = MathUtils.random(0f, 1f) * (viewport.getWorldHeight() + edgeY);
+                x = camX - viewport.getWorldWidth()/2 - texture.getWidth()*SCALE;
+                y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
         }
         
         return new float[]{x, y};
     }
+
+    
 }

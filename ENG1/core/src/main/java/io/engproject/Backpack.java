@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
@@ -16,7 +18,7 @@ import java.util.Optional;
  * A backpack that holds up to {@value #MAX_SLOTS} items.
  *
  * The backpack is a {@link GameObject}: its own rectangle and texture draw the bag icon
- * (the texture may be null for no icon), and a row of slots is drawn beside it.
+ * (the texture may be null for no icon), and a row of numbered slots is drawn beside it.
  * Keys 1-5 select a slot; {@link #useSelectedItem()} uses the item in it.
  * 
  * Bread has a cooldown after use, displaed as a wite traslucent overlay over item in a
@@ -25,19 +27,28 @@ import java.util.Optional;
  * Textures are owned by the screen that created them, not by this class.
  */
 public class Backpack extends GameObject {
+    private static final float SCALE = 1/32f;
     public static final int MAX_SLOTS = 5;
 
     // World units, matching the viewport used by GameScreen
     private static final float SLOT_SIZE = 1f;
-    private static final float SLOT_PADDING = 0.2f;
+    private static final float SLOT_PADDING = 0.3f;
     private static final float ICON_INSET = 0.1f;
     private static final float BREAD_COOLDOWN = 3f;
     private static final Color SELECTED_TINT = Color.YELLOW;
     private static final Color COOLDOWN_OVERLAY = new Color(0f, 0f, 0f, 0.65f);
 
+    // Slot number labels, in world units (cap height of the digit, and gap between slot top and digit)
+    private static final float LABEL_CAP_HEIGHT = 0.25f;
+    private static final float LABEL_GAP = 0.08f;
+
     private final Array<Item> items = new Array<>(MAX_SLOTS);
     private final Texture slotTexture;
     private final Texture whiteTexture;
+    private final BitmapFont font;
+    private final String[] slotLabels = new String[MAX_SLOTS];
+    private final GlyphLayout labelLayout = new GlyphLayout();
+    private final Color previousFontColor = new Color();
     private final Vector2 slotPosition = new Vector2();
 
     private int selectedSlot = 0;
@@ -52,15 +63,26 @@ public class Backpack extends GameObject {
      * @param h           height of the bag icon
      * @param texture     texture of the bag icon
      * @param slotTexture texture drawn behind each slot
+     * @param font
+     * font used to draw the slot numbers (its size and colour are restored after drawing)
      */
-    public Backpack(float x, float y, float w, float h, Texture texture, Texture slotTexture) {
+    public Backpack(float x, float y, float w, float h, Texture texture, Texture slotTexture,
+                    BitmapFont font) {
         super(x, y, w, h, texture);
         this.slotTexture = Objects.requireNonNull(slotTexture, "slotTexture");
+
+        // Bread cooldown texture
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         whiteTexture = new Texture(pixmap);
         pixmap.dispose();
+
+        // Font
+        this.font = Objects.requireNonNull(font, "font");
+        for (int slot = 0; slot < MAX_SLOTS; slot++) {
+            slotLabels[slot] = Integer.toString(slot + 1);
+        }
     }
 
     /**
@@ -114,7 +136,7 @@ public class Backpack extends GameObject {
     public boolean useSelectedItem() {
         Optional<Item> selected = getSelectedItem();
 
-        // NEW: Prevent bread from being used during its cooldown
+        // Prevent bread from being used during its cooldown
         if (selected.isPresent()
                 && selected.get() instanceof BreadItem
                 && cooldownTimer > 0) {
@@ -185,7 +207,7 @@ public class Backpack extends GameObject {
         }
     }
 
-    // Draws the bag icon, then every slot with its item.
+    // Draws the bag icon, then every slot with its item, then the slot numbers above the slots.
     @Override
     public void draw(Batch batch) {
         super.draw(batch);
@@ -231,6 +253,35 @@ public class Backpack extends GameObject {
     private void computeSlotPosition(int slot, Vector2 target) {
         float startX = rect.x + rect.width + SLOT_PADDING;
         target.set(startX + slot * (SLOT_SIZE + SLOT_PADDING), rect.y);
+    }
+
+    /**
+     * Draws "1" to "5" centred just above each slot, matching the number keys. Sitting above
+     * the slot keeps the digits clear of the item icons.
+     *
+     * The font is rescaled so the digits are LABEL_CAP_HEIGHT tall in world units.
+     * Its scale and colour are put back afterwards because the same font is shared with the rest of the screen.
+     */
+    public void drawSlotNumbers(Batch batch) {
+        float previousScaleX = font.getScaleX();
+        float previousScaleY = font.getScaleY();
+        previousFontColor.set(font.getColor());
+
+        for (int slot = 0; slot < MAX_SLOTS; slot++) {
+            computeSlotPosition(slot, slotPosition);
+
+            font.setColor(slot == selectedSlot ? SELECTED_TINT : Color.WHITE);
+            labelLayout.setText(font, slotLabels[slot]);
+
+            // BitmapFont draws downwards from y, so add the cap height to rest the digit on the gap
+            float labelX = (slotPosition.x + slot*(SLOT_SIZE*3f + SLOT_PADDING*2f)) / SCALE;
+            float labelY = slotPosition.y + (SLOT_SIZE + LABEL_GAP + LABEL_CAP_HEIGHT)/SCALE;
+
+            font.draw(batch, labelLayout, labelX, labelY);
+        }
+
+        font.getData().setScale(previousScaleX, previousScaleY);
+        font.setColor(previousFontColor);
     }
 
     // Disposes of a cooldown texture

@@ -31,9 +31,10 @@ public class GameScreen extends ScreenAdapter {
 
     // Asset filenames
     private static final String BKGND_FILENAME = "bkgnd.png";
-    private static final String PLAYER_FILENAME = "player.png";
+  
     private static final String FRIENDLY_GOOSE_FILENAME = "friendly_goose.png";
     private static final String ANGRY_GOOSE_FILENAME = "angry_goose.png";
+
     private static final String PUDDLE_FILENAME = "puddle.png";
     private static final String INTERACT_PART_FILENAME = "bread_";
     private static final String BREAD_ITEM_FILENAME = "backpack_bread.png";
@@ -55,7 +56,7 @@ public class GameScreen extends ScreenAdapter {
 
     // Assets
     private final Texture bkgndTexture = loadTextureFromPath(BKGND_FILENAME);
-    private final Texture playerTexture = loadTextureFromPath(PLAYER_FILENAME);
+    private final Texture playerTexture = createPlayerTexture();
     private final Texture friendlyGooseTexture = loadTextureFromPath(FRIENDLY_GOOSE_FILENAME);
     private final Texture angryGooseTexture = loadTextureFromPath(ANGRY_GOOSE_FILENAME);
     private final Texture puddleTexture = loadTextureFromPath(PUDDLE_FILENAME);
@@ -68,7 +69,7 @@ public class GameScreen extends ScreenAdapter {
     private final Animation<Texture> interactAnimation = new Animation<>(1/12f, interactTextures);
 
     // Inventory (no bag icon, so the slots start at BACKPACK_X)
-    private final Backpack backpack = new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture);
+    private final Backpack backpack;
 
     // Player and geese
     private final float[] worldBounds = getWorldBounds();
@@ -101,8 +102,9 @@ public class GameScreen extends ScreenAdapter {
         this.shapeRenderer = gm.getShapeRenderer();
         this.batch = gm.getBatch();
         this.font = gm.getFont();
+        this.backpack = createBackPack();
         this.lm = new LogicManager(this);
-
+        
         bkgndTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         createPuddles();
@@ -146,6 +148,40 @@ public class GameScreen extends ScreenAdapter {
         return texture;
     }
 
+    /**
+     * Creates the player sprite: a circle with a triangle pointer on its right side.
+     * The pointer faces right (0 degrees), and Player rotates it to face the
+     * direction the player is moving in. Made in code, so no extra asset
+     * file is needed.
+     *
+     * @return the player texture
+     */
+    private Texture createPlayerTexture() {
+        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setBlending(Pixmap.Blending.None);
+
+        // Transparent background
+        pixmap.setColor(0f, 0f, 0f, 0f);
+        pixmap.fill();
+
+        // Pointer: a dark grey triangle on the right, pointing right
+        pixmap.setColor(0.2f, 0.2f, 0.2f, 1f);
+        pixmap.fillTriangle(22, 9, 22, 23, 31, 16);
+
+        // Body: a white circle in the centre (white so high contrast works)
+        pixmap.setColor(1f, 1f, 1f, 1f);
+        pixmap.fillCircle(16, 16, 10);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    // Must be created before LogicManager is set
+    private Backpack createBackPack() {
+        return new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture, font);
+    }
+
     protected Backpack getBackpack() {
         return backpack;
     }
@@ -167,14 +203,14 @@ public class GameScreen extends ScreenAdapter {
         float viewportWidth = viewport.getWorldWidth();
         float viewportHeight = viewport.getWorldHeight();
 
-        float[] output = {
+        float[] bounds = {
             -BOUND_MARGIN_FROM_VIEWPORT,
             viewportWidth + BOUND_MARGIN_FROM_VIEWPORT,
             -BOUND_MARGIN_FROM_VIEWPORT,
             viewportHeight + BOUND_MARGIN_FROM_VIEWPORT
         };
 
-        return output;
+        return bounds;
     }
 
     protected BreadItem getBread() {
@@ -372,13 +408,16 @@ public class GameScreen extends ScreenAdapter {
 
         batch.end();
 
-        // Render backpack
+        // Render backpack slots and items (slot numbers UI not included)
         drawInventory();
 
         // Render UI
         uiViewport.apply();
         batch.setProjectionMatrix(uiViewport.getCamera().combined);
         batch.begin();
+
+        // Render backpack slot number UI
+        backpack.drawSlotNumbers(batch);
 
         // Draw text that displays player life left
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
@@ -420,7 +459,6 @@ public class GameScreen extends ScreenAdapter {
             float baseScaleX = font.getData().scaleX;
             float baseScaleY = font.getData().scaleY;
             float gameoverX;
-            //float gameoverY = uiViewport.getWorldHeight()/2 + gameoverLayout.height;
             float gameoverY = (uiViewport.getWorldHeight()/2) * 1.45f;
 
             String[] lines = centreText.split("\n");
@@ -458,10 +496,6 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBackground() {
         // Calculate how many times the texture fits into the world dimensions
-        //float v = viewport.getWorldHeight() / WORLD_HEIGHT;
-        //float u2 = viewport.getWorldWidth() / WORLD_WIDTH;
-
-        // TO FIX PROPERLY
         float v = bkgndTexture.getWidth()*SCALE;
         float u2 = bkgndTexture.getHeight()*SCALE;
 
