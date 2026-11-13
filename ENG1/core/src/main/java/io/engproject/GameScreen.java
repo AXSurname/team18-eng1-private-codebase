@@ -187,8 +187,18 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void createPuddles() {
-        puddles.add(new Puddle(3f, 2f, 2f, 1f, puddleTexture));
-        puddles.add(new Puddle(10f, 6f, 2f, 1f, puddleTexture));
+        puddles.add(getPuddle(3f, 2f));
+        puddles.add(getPuddle(10f, 6f));
+    }
+
+    /**
+     * Creates a new hidden puddle.
+     * @param x the x-coordinate of the puddle's bottom-left corner
+     * @param y the y-coordinate of the puddle's bottom-left corner
+     * @return a puddle using this screen's puddle texture
+     */
+    protected Puddle getPuddle(float x, float y) {
+        return new Puddle(x, y, Puddle.WIDTH, Puddle.HEIGHT, puddleTexture);
     }
 
     /**
@@ -427,14 +437,15 @@ public class GameScreen extends ScreenAdapter {
         String itemsText = "Items used: " + player.getItemsUsed();
         font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
 
-        // Active item message (BOOST! / MEGAPHONE!), centred horizontally below the event message
-        String itemMessage = ((player.isBoosted() ? "BOOST!   " : "")
-                            + (player.megaphoneActive() ? "MEGAPHONE!" : "")).trim();
+        // Active item message (BOOST! / MEGAPHONE!), centred horizontally and level with
+        // the middle of the stats box (box spans h - 205 to h - 35, so its centre is h - 120)
+        String itemMessage = ((player.isBoosted() ? "Redbull Used   " : "")
+                            + (player.megaphoneActive() ? "Megaphone Used" : "")).trim();
         if (!itemMessage.isEmpty()) {
             gameoverLayout.setText(font, itemMessage);
             font.draw(batch, gameoverLayout,
                       uiViewport.getWorldWidth()/2 - gameoverLayout.width/2,
-                      uiViewport.getWorldHeight() - 290);
+                      uiViewport.getWorldHeight() - 120 + gameoverLayout.height/2);
         }
 
         // Draw text that displays number of events triggered.

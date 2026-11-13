@@ -20,6 +20,11 @@ public class LogicManager {
     private static final int STARTING_ENERGY_DRINKS = 2;
     private static final int STARTING_MEGAPHONES = 1;
 
+    // Puddles: new hidden puddles appear over time, up to a cap
+    private static final float PUDDLE_SPAWN_INTERVAL = 20f; // seconds between new puddles (lower = more)
+    private static final int MAX_PUDDLES = 8;               // no new puddles while this many exist
+    private static final int STARTING_PUDDLES = 2;          // fixed puddles created by GameScreen
+
     private static final float BOSS_SPAWN_TIME = 60f;
     private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
     private boolean bossSpawned = false;
@@ -29,6 +34,7 @@ public class LogicManager {
     private String eventMessage;
     private float eventMessageTimer;
     private float pickupSpawnTimer;
+    private float puddleSpawnTimer;
 
     private final GameTimer gameTimer = new GameTimer();   // 5:00 countdown and pause state
     private final Player player;
@@ -104,6 +110,15 @@ public class LogicManager {
         gooseSpawnTimer = 0f;
         eventMessageTimer = 0f;
         pickupSpawnTimer = 0f;
+        puddleSpawnTimer = 0f;
+
+        // Remove puddles spawned during the last run, and hide the starting ones again
+        // so they can be rediscovered (and trigger the splash event) after a restart
+        puddles.truncate(STARTING_PUDDLES);
+        for (Puddle puddle : puddles) {
+            puddle.setIsVisible(false);
+            puddle.setPlayerInside(false);
+        }
     }
 
     /** Calculates whether another goose should be spawned, and spawns it if so. */
@@ -196,6 +211,17 @@ public class LogicManager {
                 player.applySpeedModifier(puddle.getSpeedModifier());
             }
         }
+
+        // Geese are slowed by puddles the same amount as the player, including hidden ones.
+        // They don't reveal puddles or trigger the splash message (only the player does, in checkCollision).
+        for (Goose goose : geese) {
+            goose.applySpeedModifier(1f);
+            for (Puddle puddle : puddles) {
+                if (goose.overlaps(puddle)) {
+                    goose.applySpeedModifier(puddle.getSpeedModifier());
+                }
+            }
+        }
     }
     
 
@@ -224,6 +250,27 @@ public class LogicManager {
     }
 
 
+    // Spawns a new hidden puddle at a random spot if the spawn timer has elapsed
+    // and the cap hasn't been reached. Skips spots under the player so they
+    // aren't slowed by a puddle appearing beneath them.
+    private void spawnPuddle() {
+        if (puddleSpawnTimer < PUDDLE_SPAWN_INTERVAL || puddles.size >= MAX_PUDDLES) {
+            return;
+        }
+
+        float rndX = MathUtils.random(0f, game.getWorldWidth() - Puddle.WIDTH);
+        float rndY = MathUtils.random(0f, game.getWorldHeight() - Puddle.HEIGHT);
+        Puddle puddle = game.getPuddle(rndX, rndY);
+
+        if (player.overlaps(puddle)) {
+            return;   // try again next frame with a new random spot
+        }
+
+        puddleSpawnTimer = 0f;
+        puddles.add(puddle);
+    }
+
+
     /**
      * Updates the game state by ticking timers, as well as updating players, geese
      * and collision detection.
@@ -234,6 +281,7 @@ public class LogicManager {
         bossSpawnTimer += dt;
         gooseSpawnTimer += dt;
         pickupSpawnTimer += dt;
+        puddleSpawnTimer += dt;
         eventMessageTimer = Math.max(0f, eventMessageTimer - dt);
 
         player.update(dt);
@@ -249,6 +297,7 @@ public class LogicManager {
 
         startEvent();
         spawnItem();
+        spawnPuddle();
     }
 
     private void separateGeese() {

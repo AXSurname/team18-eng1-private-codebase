@@ -18,6 +18,7 @@ public class Goose extends GameObject {
     private boolean friendly;
     private float feedingTimer;
     private boolean isOverlapping = false;
+    private float terrainModifier = 1f;   // Multiplies speed, e.g. 0.5 while in a puddle
 
     /**
      * Creates a Goose.
@@ -64,6 +65,15 @@ public class Goose extends GameObject {
         return STARTING_SPEED + (MAX_SPEED - STARTING_SPEED) * progress;
     }
   
+    /** Sets the terrain speed multiplier (1 = normal, e.g. a puddle's modifier while inside one). */
+    public void applySpeedModifier(float modifier) {
+        terrainModifier = modifier;
+    }
+
+    protected float getTerrainModifier() {
+        return terrainModifier;
+    }
+
     public void separate(Goose other) {
     if (!overlaps(other)) {
         return;
@@ -110,7 +120,7 @@ public class Goose extends GameObject {
 
 
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
-        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * dt);
+        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * terrainModifier * dt);
 
 
         if (player.megaphoneActive()) {
