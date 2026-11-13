@@ -48,7 +48,7 @@ public class BossGoose extends Goose {
         }
 
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
-        Vector2 direction = this.getPlayer().rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
+        Vector2 direction = this.getPlayer().rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * dt);
         if (isFriendly() || this.getPlayer().megaphoneActive()) {
             // Move away from player centre
             direction.scl(-1);

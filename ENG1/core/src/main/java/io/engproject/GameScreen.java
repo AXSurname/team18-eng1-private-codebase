@@ -424,8 +424,18 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
 
         // Draw text that displays number of items used.
-        String itemsText = "Items used: " + player.getItemsUsed() + (player.isBoosted() ? "   BOOST!" : "") + (player.megaphoneActive() ? "   MEGAPHONE!" : "");
+        String itemsText = "Items used: " + player.getItemsUsed();
         font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
+
+        // Active item message (BOOST! / MEGAPHONE!), centred horizontally below the event message
+        String itemMessage = ((player.isBoosted() ? "BOOST!   " : "")
+                            + (player.megaphoneActive() ? "MEGAPHONE!" : "")).trim();
+        if (!itemMessage.isEmpty()) {
+            gameoverLayout.setText(font, itemMessage);
+            font.draw(batch, gameoverLayout,
+                      uiViewport.getWorldWidth()/2 - gameoverLayout.width/2,
+                      uiViewport.getWorldHeight() - 290);
+        }
 
         // Draw text that displays number of events triggered.
         String eventsText = "Events triggered: " + player.getEventsTriggered();
@@ -450,7 +460,7 @@ public class GameScreen extends ScreenAdapter {
         if (!player.isAlive()) {
             centreText = "GAME OVER!\nPress R to Restart";
         } else if (gameTimer.isFinished()) {
-            centreText = "YOU SURVIVED!\nPress R to Restart";
+            centreText = "YOU WIN!\nYou survived the geese for 5 minutes!\nPress R to Restart";
         } else if (gameTimer.isPaused()) {
             centreText = "PAUSED - press Esc to play\n\n" + TutorialScreen.CONTROLS_TEXT;
         }

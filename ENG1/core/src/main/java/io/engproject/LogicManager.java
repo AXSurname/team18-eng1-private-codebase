@@ -13,7 +13,7 @@ public class LogicManager {
     private static final float DAMAGE_PER_SEC = 1f;
 
     //Time between spawn of items.
-    private static final float PICKUP_SPAWN_INTERVAL = 30f; // Inverval between item spawns in seconds
+    private static final float PICKUP_SPAWN_INTERVAL = 15f; // Inverval between item spawns in seconds
     
     // Energy drinks the backpack starts each run with, until the team decides how
     // items should appear (pickups via spawnItem() or a starting stock)
@@ -206,7 +206,7 @@ public class LogicManager {
             pickupSpawnTimer = 0f;
         
 
-            float itemSpawnChance = MathUtils.random(0f, 101f); // Decided which item to spawn.
+            float itemSpawnChance = MathUtils.random(0f, 100f); // Decided which item to spawn.
 
             float rndX = MathUtils.random(0f, game.getWorldWidth() - ItemPickup.SIZE);
             float rndY = MathUtils.random(0f, game.getWorldHeight() - ItemPickup.SIZE);

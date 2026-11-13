@@ -25,8 +25,7 @@ public class TutorialScreen extends ScreenAdapter {
                                                 + "Or it can be a megaphone which temporarily scares the geese away when used.\n"
                                                 + "The items besides bread spawn randomly and are one use items.\n"
                                                 + "Toggle high-contrast visuals: H\n"
-                                                + "Pause/unpause: Esc\n\n"
-                                                + "Press R to restart";
+                                                + "Pause/unpause: Esc";
 
     private static final String INTRO_TEXT = "Avoid the geese and feed them bread for them to leave you!\n"
                                              + "The objective is to survive for 5 minutes to win.";
