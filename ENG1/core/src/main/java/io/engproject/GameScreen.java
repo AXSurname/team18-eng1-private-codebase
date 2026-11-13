@@ -269,7 +269,7 @@ public class GameScreen extends ScreenAdapter {
      * @return a goose that now exists in the game world.
      */
     protected Goose getGoose() {
-        return Goose.spawn(viewport, angryGooseTexture, player);
+        return Goose.spawn(viewport, angryGooseTexture, player, lm.getGameTimer());
     }
     
     /**
@@ -277,7 +277,7 @@ public class GameScreen extends ScreenAdapter {
      * @return a boss goose that now exists in the game world.
      */
     protected BossGoose getBossGoose() {
-        return BossGoose.spawn(viewport, angryGooseTexture, player);
+        return BossGoose.spawn(viewport, angryGooseTexture, player, lm.getGameTimer());
     }
 
     // Updates both viewports' window size if configuration.setResizable() is changed to true.
@@ -518,7 +518,7 @@ public class GameScreen extends ScreenAdapter {
         batch.begin();
 
         backpack.draw(batch);
-
+        
         batch.end();
     }
     

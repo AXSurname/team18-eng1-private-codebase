@@ -7,8 +7,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /** An enemy for the player to evade. */
 public class Goose extends GameObject {
+    private final GameTimer gameTimer;
     private static final float SCALE = 1/32f;
-    private static final float SPEED = 0.7f; // makes it so geese are esasier to outrun
+    private static final float STARTING_SPEED = 0.7f;
+    private static final float MAX_SPEED = 2.0f;
     private static final float FEEDING_DURATION = 3f;
     
     private final Player player;
@@ -25,9 +27,10 @@ public class Goose extends GameObject {
      * @param texture the image representing the goose which is displayed
      * @param player  the target the goose moves towards
      */
-    public Goose(float x, float y, Texture texture, Player player) {
+    public Goose(float x, float y, Texture texture, Player player, GameTimer gameTimer) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.player = player;
+        this.gameTimer = gameTimer;
         this.angryGooseTexture = texture;
     }
 
@@ -55,6 +58,12 @@ public class Goose extends GameObject {
         return friendly;
     }
 
+    public float currentSpeed() {
+        float passedTime = 300f - gameTimer.getTimeRemaining();
+        float progress = MathUtils.clamp(passedTime/300f, 0f, 1f);
+        return STARTING_SPEED + (MAX_SPEED - STARTING_SPEED) * progress;
+    }
+  
     public void separate(Goose other) {
     if (!overlaps(other)) {
         return;
@@ -101,7 +110,7 @@ public class Goose extends GameObject {
 
 
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
-        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(SPEED * dt);
+        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * dt);
 
 
         if (player.megaphoneActive()) {
@@ -138,10 +147,10 @@ public class Goose extends GameObject {
      * @param player   the target the goose moves towards
      * @return the spawned goose
      */
-    public static Goose spawn(Viewport viewport, Texture texture, Player player) {
+    public static Goose spawn(Viewport viewport, Texture texture, Player player, GameTimer gameTimer) {
         float[] spawnPos = calcSpawn(viewport, texture);
 
-        return new Goose(spawnPos[0], spawnPos[1], texture, player);
+        return new Goose(spawnPos[0], spawnPos[1], texture, player, gameTimer);
     }
 
     // Helper method for spawn that calculates the position of the goose spawning.
