@@ -46,4 +46,8 @@ public class GameTimer {
         int totalSeconds = (int) Math.ceil(timeRemaining);
         return String.format("%d:%02d", totalSeconds / 60, totalSeconds % 60);
     }
+
+    public float getTimeRemaining() {
+        return timeRemaining;
+    }
 }

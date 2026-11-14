@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class Puddle extends GameObject {
     private static final float SPEED_MODIFIER = 0.5f;
+    public static final float WIDTH = 2f;
+    public static final float HEIGHT = 1f;
     
     private boolean isVisible = false;
     private boolean isPlayerInside = false;

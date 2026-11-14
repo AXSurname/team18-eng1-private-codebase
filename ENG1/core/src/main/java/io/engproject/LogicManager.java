@@ -9,16 +9,21 @@ import com.badlogic.gdx.math.MathUtils;
  */
 public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
-    private static final int MAX_GEESE = 15;   // no new geese spawn while this many are on screen
+    private static final int MAX_GEESE = 15;   // no new geese spawn while this many are active
     private static final float DAMAGE_PER_SEC = 1f;
 
     //Time between spawn of items.
-    private static final float PICKUP_SPAWN_INTERVAL = 30f; // Inverval between item spawns in seconds
+    private static final float PICKUP_SPAWN_INTERVAL = 15f; // Inverval between item spawns in seconds
     
     // Energy drinks the backpack starts each run with, until the team decides how
     // items should appear (pickups via spawnItem() or a starting stock)
     private static final int STARTING_ENERGY_DRINKS = 2;
     private static final int STARTING_MEGAPHONES = 1;
+
+    // Puddles: new hidden puddles appear over time, up to a cap
+    private static final float PUDDLE_SPAWN_INTERVAL = 20f; // seconds between new puddles (lower = more)
+    private static final int MAX_PUDDLES = 8;               // no new puddles while this many exist
+    private static final int STARTING_PUDDLES = 2;          // fixed puddles created by GameScreen
 
     private static final float BOSS_SPAWN_TIME = 60f;
     private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
@@ -29,6 +34,7 @@ public class LogicManager {
     private String eventMessage;
     private float eventMessageTimer;
     private float pickupSpawnTimer;
+    private float puddleSpawnTimer;
 
     private final GameTimer gameTimer = new GameTimer();   // 5:00 countdown and pause state
     private final Player player;
@@ -104,11 +110,19 @@ public class LogicManager {
         gooseSpawnTimer = 0f;
         eventMessageTimer = 0f;
         pickupSpawnTimer = 0f;
+        puddleSpawnTimer = 0f;
+
+        // Remove puddles spawned during the last run, and hide the starting ones again
+        // so they can be rediscovered (and trigger the splash event) after a restart
+        puddles.truncate(STARTING_PUDDLES);
+        for (Puddle puddle : puddles) {
+            puddle.setIsVisible(false);
+            puddle.setPlayerInside(false);
+        }
     }
 
     /** Calculates whether another goose should be spawned, and spawns it if so. */
     private void spawnGoose() {
-
         if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && geese.size < MAX_GEESE) {
             gooseSpawnTimer = 0f;
 
@@ -118,7 +132,7 @@ public class LogicManager {
     }
 
     /**
-     * Removes a Goose if its Rectangle collides with an Interaction's Rectangle,
+     * Makes a Goose friendly if its Rectangle collides with an Interaction's Rectangle,
      * and decreases the Players's health if a Goose's Rectangle collides with the
      * Player's.
      * 
@@ -132,7 +146,7 @@ public class LogicManager {
                 Goose next = iterator.next();
 
                 if (interaction.overlaps(next)) {
-                    iterator.remove();
+                    next.makeFriendly(game.getFriendlyGooseTexture());
                 }
             }
         }
@@ -140,7 +154,7 @@ public class LogicManager {
         int hitNum = 0;
 
         for (Goose goose : geese) {
-            if (player.overlaps(goose)) {
+            if (!goose.isFriendly() && player.overlaps(goose)) {
                 ++hitNum;
             }
         }
@@ -186,7 +200,7 @@ public class LogicManager {
 
 
             geese.add(game.getBossGoose());
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 8; i++) {
                 geese.add(game.getGoose());
             }
         }
@@ -197,12 +211,23 @@ public class LogicManager {
                 player.applySpeedModifier(puddle.getSpeedModifier());
             }
         }
+
+        // Geese are slowed by puddles the same amount as the player, including hidden ones.
+        // They don't reveal puddles or trigger the splash message (only the player does, in checkCollision).
+        for (Goose goose : geese) {
+            goose.applySpeedModifier(1f);
+            for (Puddle puddle : puddles) {
+                if (goose.overlaps(puddle)) {
+                    goose.applySpeedModifier(puddle.getSpeedModifier());
+                }
+            }
+        }
     }
     
 
     // Spawns a random item pickup if the spawn timer has elapsed.
     private void spawnItem() {
-        if (pickupSpawnTimer > PICKUP_SPAWN_INTERVAL)
+        if (pickupSpawnTimer >= PICKUP_SPAWN_INTERVAL)
         {
             pickupSpawnTimer = 0f;
         
@@ -225,6 +250,27 @@ public class LogicManager {
     }
 
 
+    // Spawns a new hidden puddle at a random spot if the spawn timer has elapsed
+    // and the cap hasn't been reached. Skips spots under the player so they
+    // aren't slowed by a puddle appearing beneath them.
+    private void spawnPuddle() {
+        if (puddleSpawnTimer < PUDDLE_SPAWN_INTERVAL || puddles.size >= MAX_PUDDLES) {
+            return;
+        }
+
+        float rndX = MathUtils.random(0f, game.getWorldWidth() - Puddle.WIDTH);
+        float rndY = MathUtils.random(0f, game.getWorldHeight() - Puddle.HEIGHT);
+        Puddle puddle = game.getPuddle(rndX, rndY);
+
+        if (player.overlaps(puddle)) {
+            return;   // try again next frame with a new random spot
+        }
+
+        puddleSpawnTimer = 0f;
+        puddles.add(puddle);
+    }
+
+
     /**
      * Updates the game state by ticking timers, as well as updating players, geese
      * and collision detection.
@@ -235,6 +281,7 @@ public class LogicManager {
         bossSpawnTimer += dt;
         gooseSpawnTimer += dt;
         pickupSpawnTimer += dt;
+        puddleSpawnTimer += dt;
         eventMessageTimer = Math.max(0f, eventMessageTimer - dt);
 
         player.update(dt);
@@ -245,10 +292,26 @@ public class LogicManager {
             goose.update(dt);
         }
 
+        separateGeese();
         checkCollision(dt);
 
         startEvent();
         spawnItem();
+        spawnPuddle();
+    }
+
+    private void separateGeese() {
+        for (int pass = 0; pass < 3; pass++) {
+            for (int i = 0; i < geese.size; i++) {
+                Goose goose1 = geese.get(i);
+                for (int j = i + 1; j < geese.size; j++) {
+                    Goose goose2 = geese.get(j);
+                    if (goose1.overlaps(goose2)) {
+                        goose1.separate(goose2);
+                    }
+                }
+            }
+        }
     }
 
 }
