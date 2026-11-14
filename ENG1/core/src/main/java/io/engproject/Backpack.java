@@ -21,7 +21,7 @@ import java.util.Optional;
  * (the texture may be null for no icon), and a row of numbered slots is drawn beside it.
  * Keys 1-5 select a slot; {@link #useSelectedItem()} uses the item in it.
  * 
- * Bread has a cooldown after use, displaed as a wite traslucent overlay over item in a
+ * Bread has a cooldown after use, displaed as a white translucent overlay over item in a
  * backpack
  *
  * Textures are owned by the screen that created them, not by this class.
