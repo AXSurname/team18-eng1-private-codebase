@@ -13,3 +13,5 @@ Linux: ./gradlew lwjgl3:run
 Parts of the game loop, `GameObject`, `Player`, `Goose` and `Interaction` are
 adapted from Quillraven's libGDX "Slime Survivor" tutorial, which the team used
 as a starting point.
+
+The font "Matcha Style" is made and owned by Khurasan (https://www.creativefabrica.com/designer/khurasan/ref/53/) and is available for free commercial and personal use.
