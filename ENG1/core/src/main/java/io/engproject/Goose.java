@@ -17,7 +17,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 */
 public class Goose extends GameObject {
     private static final float SCALE = 1/32f;
-    private static final float STARTING_SPEED = 0.7f;
+    private static final float STARTING_SPEED = 1.2f;
     private static final float MAX_SPEED = 2.0f;
     private static final float FEEDING_DURATION = 3f;
     

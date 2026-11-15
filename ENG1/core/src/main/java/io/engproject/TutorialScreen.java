@@ -32,7 +32,7 @@ public class TutorialScreen extends ScreenAdapter {
                                         + "Toggle high-contrast visuals: H\n"
                                         + "Pause/unpause: Esc";
 
-    private static final String INTRO_TEXT = "Avoid the geese and feed them bread for them to"
+    private static final String INTRO_TEXT = "Avoid the geese and feed them bread for them to "
                                              + "leave you!\n"
                                              + "The objective is to survive for 5 minutes to win.";
 

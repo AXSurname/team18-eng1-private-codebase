@@ -1,3 +1,4 @@
+ASSETS-LICENCE
 angry_goose.png
 backpack_bread.png
 bkgnd.png
