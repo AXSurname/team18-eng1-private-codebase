@@ -5,7 +5,13 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 
-/** An animated interaction which a player triggers to affect a goose. */
+/**
+ * An animated interaction which a player triggers to affect a goose.
+ * 
+ * The {@link #DURATION} is set in accordance with the length of the passed-in animation
+ * (i.e. the number of images converted into frames). The {@link #SIZE} sets how large
+ * the interaction will be in the game relative to the size of its images.
+ * */
 public abstract class Interaction extends GameObject {
     private final float DURATION;
     private final float SIZE;

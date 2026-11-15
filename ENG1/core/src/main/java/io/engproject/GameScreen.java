@@ -19,14 +19,15 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * The game's GUI, and also instantiates the Player, an array of Goose, and all renderables,
- * which it displays. Its game state is updated via its calls to a LogicManager.
+ * The game's GUI. It also instantiates {@link GameObject}s such as the {@link Player},
+ * an array of {@link Goose}, the {@link Backpack} and other renderables, which it
+ * displays. Its game state is updated via its calls to {@link LogicManager}.
  */
 public class GameScreen extends ScreenAdapter {
     private static final float SCALE = 1/32f;
     private static final float WORLD_WIDTH = 16f;
     private static final float WORLD_HEIGHT = 9f;
-    private static final float BOUND_MARGIN_FROM_VIEWPORT = 5f; // is in world units
+    private static final float BOUND_MARGIN_FROM_VIEWPORT = 5f; // Is in world units
     private static final boolean DRAW_DEBUG = false; // Manually set for debugging
 
     // Asset filenames
@@ -41,9 +42,10 @@ public class GameScreen extends ScreenAdapter {
     private static final String ENERGY_DRINK_FILENAME = "energydrink.png";
     private static final String MEGAPHONE_FILENAME = "megaphone.png";
 
-    // Backpack position in world units (bottom-left corner of the map)
+    // Backpack position in world units (bottom-left corner of the map).
     private static final float BACKPACK_X = 0f;
     private static final float BACKPACK_Y = 0.2f;
+
     // General
     private final ShapeRenderer shapeRenderer;
     private final Batch batch;
@@ -75,7 +77,7 @@ public class GameScreen extends ScreenAdapter {
     private final float[] worldBounds = getWorldBounds();
 
     private final Player player = new Player(
-        WORLD_WIDTH/2f - (playerTexture.getWidth()/2)*SCALE,    // Spawn position
+        WORLD_WIDTH/2f - (playerTexture.getWidth()/2)*SCALE,   // Spawn position
         WORLD_HEIGHT/2f - (playerTexture.getHeight()/2)*SCALE,
         worldBounds,        // Movement boundries
         playerTexture,      // Graphics
@@ -93,7 +95,8 @@ public class GameScreen extends ScreenAdapter {
     private final LogicManager lm;
 
     /**
-     * Creates a GameScreen and instantiates its GameManager, LogicManager, batch and font.
+     * Creates a GameScreen and instantiates its {@link GameManager}, {@link LogicManager},
+     * batch and font.
      * 
      * @param gm the 'setup' GameManager class used to instantiate batch and font
      */
@@ -105,54 +108,21 @@ public class GameScreen extends ScreenAdapter {
         this.backpack = createBackPack();
         this.lm = new LogicManager(this);
         
+        // Allows background texture to repeat.
         bkgndTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         createPuddles();
     }
-
-    /**
-     * Creates the textures required for GameScreen's interactTextures field (to be used
-     * in the field interactAnimation that is passed into a Player).
-     * 
-     * @return the textures used for the player's interactions
-     */
-    private Array<Texture> loadInteractTextures() {
-        var textures = new Array<Texture>();
-        for (int i=0; i<4; i++) {
-            textures.add(new Texture(Gdx.files.internal(String.format(INTERACT_PART_FILENAME
-                                                                      + "%01d.png", i))));
-        }
-        return textures;
-    }
     
+    // If the image is in the assets folder, only the image filename is needed.
     private Texture loadTextureFromPath(String filepath) {
         return new Texture(Gdx.files.internal(filepath));
     }
 
     /**
-     * Creates the texture drawn behind each backpack slot: a translucent dark square
-     * with a light border. Made in code so no extra asset file is needed.
-     *
-     * @return the slot texture
-     */
-    private Texture createSlotTexture() {
-        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0.5f);
-        pixmap.fill();
-        pixmap.setColor(Color.WHITE);
-        pixmap.drawRectangle(0, 0, 32, 32);
-        pixmap.drawRectangle(1, 1, 30, 30);
-
-        Texture texture = new Texture(pixmap);
-        pixmap.dispose();
-        return texture;
-    }
-
-    /**
-     * Creates the player sprite: a circle with a triangle pointer on its right side.
-     * The pointer faces right (0 degrees), and Player rotates it to face the
-     * direction the player is moving in. Made in code, so no extra asset
-     * file is needed.
+     * Creates the player sprite: a circle with a triangle pointer (initially on
+     * its right side at 0 degrees). It rotates in the direction the player is
+     * moving in. No image file is required to create this sprite.
      *
      * @return the player texture
      */
@@ -177,13 +147,43 @@ public class GameScreen extends ScreenAdapter {
         return texture;
     }
 
-    // Must be created before LogicManager is set
-    private Backpack createBackPack() {
-        return new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture, font);
+    /**
+     * Creates the texture drawn behind each backpack slot: a translucent dark square
+     * with a light border. Made in code so no extra asset file is needed.
+     *
+     * @return the slot texture
+     */
+    private Texture createSlotTexture() {
+        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0f, 0f, 0f, 0.5f);
+        pixmap.fill();
+        pixmap.setColor(Color.WHITE);
+        pixmap.drawRectangle(0, 0, 32, 32);
+        pixmap.drawRectangle(1, 1, 30, 30);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
     }
 
-    protected Backpack getBackpack() {
-        return backpack;
+    /**
+     * Creates the textures required for GameScreen's {@link #interactAnimation} field
+     * (to be passed into {@link Player}).
+     * 
+     * @return the textures used for the player's interactions
+     */
+    private Array<Texture> loadInteractTextures() {
+        var textures = new Array<Texture>();
+        for (int i=0; i<4; i++) {
+            textures.add(new Texture(Gdx.files.internal(String.format(INTERACT_PART_FILENAME
+                                                                      + "%01d.png", i))));
+        }
+        return textures;
+    }
+
+    // Must be created before LogicManager is set.
+    private Backpack createBackPack() {
+        return new Backpack(BACKPACK_X, BACKPACK_Y, 0f, 1f, null, slotTexture, font);
     }
 
     private void createPuddles() {
@@ -193,6 +193,7 @@ public class GameScreen extends ScreenAdapter {
 
     /**
      * Creates a new hidden puddle.
+     * 
      * @param x the x-coordinate of the puddle's bottom-left corner
      * @param y the y-coordinate of the puddle's bottom-left corner
      * @return a puddle using this screen's puddle texture
@@ -201,13 +202,27 @@ public class GameScreen extends ScreenAdapter {
         return new Puddle(x, y, Puddle.WIDTH, Puddle.HEIGHT, puddleTexture);
     }
 
+    protected Array<Puddle> getPuddles() {
+        return puddles;
+    }
+
+    // Returns the world width in world units.
+    public float getWorldWidth() {
+        return viewport.getWorldWidth();
+    }
+
+    // Returns the world height in world units.
+    public float getWorldHeight() {
+        return viewport.getWorldHeight();
+    }
+
     /**
      * Creates the world's boundaries the player cannot move past, which are calculated
      * from the viewport's width and height, and the {@link GameScreen}'s defined
      * {@link #BOUND_MARGIN_FROM_VIEWPORT} value (in world units).
      * 
-     * @return an array of floats defined in the following order: {left-most X, right-most X,
-     * top Y, bottom Y}.
+     * @return an array of floats defined in the following order: left-most X, right-most X,
+     * top Y, bottom Y.
      */
     private float[] getWorldBounds() {
         float viewportWidth = viewport.getWorldWidth();
@@ -223,39 +238,30 @@ public class GameScreen extends ScreenAdapter {
         return bounds;
     }
 
-    protected BreadItem getBread() {
-        return new BreadItem(player, backpack, breadItemTexture);
-    }
-
-    /**
-     * Creates a new energy drink for the player.
-     * @return an energy drink that uses this screen's icon texture
-     */
-    protected EnergyDrinkItem getEnergyDrink() {
-        return new EnergyDrinkItem(player, energyDrinkTexture);
-    }
-
-    /**
-     * Creates a new megaphone for the player.
-     * @return a megaphone that uses this screen's icon texture
-     */
-    protected MegaphoneItem getMegaphone() {
-        return new MegaphoneItem(player, megaphoneTexture);
-    }
-
-    /**
-     * Creates a new item pickup for the game.
-     * @param x the x-coordinate of the item pickup
-     * @param y the y-coordinate of the item pickup
-     * @param item the item to be picked up
-     * @return an item pickup that now exists in the game world
-     */
-    protected ItemPickup getPickup(float x, float y, Item item) {
-        return new ItemPickup(x, y, item);
+    protected Backpack getBackpack() {
+        return backpack;
     }
 
     protected Player getPlayer() {
         return player;
+    }
+
+    /**
+     * Spawns a Goose outside the map and returns it.
+     * 
+     * @return a goose that now exists in the game world.
+     */
+    protected Goose getGoose() {
+        return Goose.spawn(viewport, angryGooseTexture, player, lm.getGameTimer());
+    }
+    
+    /**
+     * Spawns a BossGoose outside the map and returns it.
+     * 
+     * @return a boss goose that now exists in the game world.
+     */
+    protected BossGoose getBossGoose() {
+        return BossGoose.spawn(viewport, angryGooseTexture, player, lm.getGameTimer());
     }
 
     protected Array<Goose> getGeese() {
@@ -266,8 +272,16 @@ public class GameScreen extends ScreenAdapter {
         return friendlyGooseTexture;
     }
 
-    protected Array<Puddle> getPuddles() {
-        return puddles;
+    /**
+     * Creates a new item pickup for the game.
+     * 
+     * @param x the x-coordinate of the item pickup
+     * @param y the y-coordinate of the item pickup
+     * @param item the item to be picked up
+     * @return an item pickup that now exists in the game world
+     */
+    protected ItemPickup getPickup(float x, float y, Item item) {
+        return new ItemPickup(x, y, item);
     }
 
     protected Array<ItemPickup> getItemPickups() {
@@ -275,19 +289,30 @@ public class GameScreen extends ScreenAdapter {
     }
 
     /**
-     * Spawns a Goose outside the map and returns it.
-     * @return a goose that now exists in the game world.
+     * Creates a new infinite loaf of bread for the player.
+     * 
+     * @return a loaf of bread that uses this screen's icon texture
      */
-    protected Goose getGoose() {
-        return Goose.spawn(viewport, angryGooseTexture, player, lm.getGameTimer());
+    protected BreadItem getBread() {
+        return new BreadItem(player, backpack, breadItemTexture);
     }
-    
+
     /**
-     * Spawns a BossGoose outside the map and returns it.
-     * @return a boss goose that now exists in the game world.
+     * Creates a new energy drink for the player.
+     * 
+     * @return an energy drink that uses this screen's icon texture
      */
-    protected BossGoose getBossGoose() {
-        return BossGoose.spawn(viewport, angryGooseTexture, player, lm.getGameTimer());
+    protected EnergyDrinkItem getEnergyDrink() {
+        return new EnergyDrinkItem(player, energyDrinkTexture);
+    }
+
+    /**
+     * Creates a new megaphone for the player.
+     * 
+     * @return a megaphone that uses this screen's icon texture
+     */
+    protected MegaphoneItem getMegaphone() {
+        return new MegaphoneItem(player, megaphoneTexture);
     }
 
     // Updates both viewports' window size if configuration.setResizable() is changed to true.
@@ -310,16 +335,16 @@ public class GameScreen extends ScreenAdapter {
      */
     @Override
     public void render(float dt) {
-        // Allows the camera to follow the player
+        // Allows the camera to follow the player.
         viewport.getCamera().position.set(player.getCentre(playerCentre), 0);
         viewport.getCamera().update();
 
-        // Enables high contrast mode with H
+        // Enables high contrast mode with key H.
         if (Gdx.input.isKeyJustPressed(Input.Keys.H)) {
             AccessibilitySettings.toggleHighContrast();
         }
 
-        // Calls to input and logic, unless paused (the game starts paused) or over
+        // Calls to input and logic, unless paused (the game starts paused) or game over.
         GameTimer gameTimer = lm.getGameTimer();
         if (player.isAlive() && !gameTimer.isFinished()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -333,17 +358,18 @@ public class GameScreen extends ScreenAdapter {
             lm.resetGame();
         }
         
-        // Then render GUI
+        // Render GUI
         draw();
     }
 
     /**
-     * Detects and processes the player's input on keyboard. Note it is the
-     * only exempt method in GameScreen to interact directly with Player's logic
-     * directly to pass in input data.
+     * Detects and processes the player's input on keyboard, so the player can be
+     * moved and backpack items can be selected. Note it is the only exempt method
+     * in GameScreen to interact directly with {@link Player}'s logic (i.e. not just
+     * its getter and rendering methods) directly to pass in input data.
      */
     private void getInput() {
-        // Pass in movement input to Player
+        // Pass in movement input to Player.
         inputMovement.setZero();
         
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
@@ -362,7 +388,7 @@ public class GameScreen extends ScreenAdapter {
         inputMovement.nor();
         player.changeDirection(inputMovement);
         
-        // Backpack: keys 1-5 select a slot, E uses the selected item
+        // Backpack: keys 1-5 select a slot, E uses the selected item.
         backpack.update(Gdx.graphics.getDeltaTime());
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             backpack.useSelectedItem();
@@ -376,6 +402,7 @@ public class GameScreen extends ScreenAdapter {
     private void draw() {
         boolean highContrast = AccessibilitySettings.isHighContrast();
 
+        // Sets colour outside of background borders/player bounds.
         ScreenUtils.clear(Color.FOREST);
 
         // Render textures
@@ -383,6 +410,7 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
+        // Tints the background colour if the accessibility high-contrast settings are on.
         if (highContrast) {
             batch.setColor(new Color(0.25f, 0.25f, 0.25f, 1f));
         } else {
@@ -406,6 +434,7 @@ public class GameScreen extends ScreenAdapter {
         batch.setColor(highContrast ? Color.YELLOW : Color.WHITE);
         player.draw(batch);
 
+        // Draws items pickups that spawn on the map.
         batch.setColor(Color.WHITE);
         drawItems();
 
@@ -418,7 +447,7 @@ public class GameScreen extends ScreenAdapter {
 
         batch.end();
 
-        // Render backpack slots and items (slot numbers UI not included)
+        // Render backpack slots and items (slot numbers UI not included).
         drawInventory();
 
         // Render UI
@@ -429,7 +458,7 @@ public class GameScreen extends ScreenAdapter {
         // Render backpack slot number UI
         backpack.drawSlotNumbers(batch);
 
-        // Draw text that displays player life left
+        // Draw text that displays player life left.
         String lifeText = "Life left: " + String.format("%.1f", player.getLife());
         font.draw(batch, lifeText, 40f, uiViewport.getWorldHeight() - 40);
 
@@ -438,7 +467,7 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, itemsText, 40f, uiViewport.getWorldHeight() - 80);
 
         // Active item message (BOOST! / MEGAPHONE!), centred horizontally and level with
-        // the middle of the stats box (box spans h - 205 to h - 35, so its centre is h - 120)
+        // the middle of the stats box (box spans h - 205 to h - 35, so its centre is h - 120).
         String itemMessage = ((player.isBoosted() ? "Redbull Used   " : "")
                             + (player.megaphoneActive() ? "Megaphone Used" : "")).trim();
         if (!itemMessage.isEmpty()) {
@@ -452,7 +481,7 @@ public class GameScreen extends ScreenAdapter {
         String eventsText = "Events triggered: " + player.getEventsTriggered();
         font.draw(batch, eventsText, 40f, uiViewport.getWorldHeight() - 120);
         
-        // Event message, centred below the HUD, for a few seconds after an event triggers
+        // Event message, centred below the HUD, for a few seconds after an event triggers.
         String eventMessage = lm.getEventMessage();
         if (eventMessage != null) {
             gameoverLayout.setText(font, eventMessage);
@@ -461,12 +490,12 @@ public class GameScreen extends ScreenAdapter {
                       uiViewport.getWorldHeight() - 240);
         }
 
-        // Draw the time left (GameTimer)
+        // Draw the time left (GameTimer).
         GameTimer gameTimer = lm.getGameTimer();
         String timeText = "Time left: " + gameTimer.getFormattedTime();
         font.draw(batch, timeText, 40f, uiViewport.getWorldHeight() - 160);
 
-        // Centre message: game over, survived the 5 minutes, or paused
+        // Centre message: game over, survived the 5 minutes, or paused.
         String centreText = null;
         if (!player.isAlive()) {
             centreText = "GAME OVER!\nPress R to Restart";
@@ -484,7 +513,7 @@ public class GameScreen extends ScreenAdapter {
 
             String[] lines = centreText.split("\n");
             for (int i = 0; i < lines.length; i++) {
-            // When paused, line 0 is the "PAUSED" header; everything after is the controls list
+            // When paused, line 0 is the "PAUSED" header; everything after is the controls list.
                 boolean smallLine = gameTimer.isPaused() && i > 0;
                  if (smallLine) {
                     font.getData().setScale(baseScaleX * 0.7f, baseScaleY * 0.7f);
@@ -503,7 +532,7 @@ public class GameScreen extends ScreenAdapter {
 
         batch.end();
         
-        // Outline around the top-left stats
+        // Outline around the top-left stats.
         float h = uiViewport.getWorldHeight();
         shapeRenderer.setProjectionMatrix(uiViewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -516,11 +545,11 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void drawBackground() {
-        // Calculate how many times the texture fits into the world dimensions
+        // Calculate how many times the texture fits into the world dimensions.
         float v = bkgndTexture.getWidth()*SCALE;
         float u2 = bkgndTexture.getHeight()*SCALE;
 
-        // Draw with custom (u, v) coordinates to correctly repeat the texture
+        // Draw with custom (u, v) coordinates to correctly repeat the texture.
         batch.draw(bkgndTexture,
             -BOUND_MARGIN_FROM_VIEWPORT, -BOUND_MARGIN_FROM_VIEWPORT,
             viewport.getWorldWidth() + BOUND_MARGIN_FROM_VIEWPORT*2,
@@ -530,9 +559,9 @@ public class GameScreen extends ScreenAdapter {
         );
     }
 
-    // Backpack is composed of several slots that are Textures and not Fonts
-    // Therefore a different FitViewport is needed to give UI-like display
-    // (Textures cannot be drawn on a ScreenViewport without a Stage (which is not implemented))
+    // Backpack is composed of several slots that are Textures and not Fonts. Therefore a different
+    // FitViewport is needed to give UI-like display. (Textures cannot be drawn on a ScreenViewport
+    // without a Stage (which is not implemented).)
     private void drawInventory() {
         backpackViewport.apply();
         batch.setProjectionMatrix(backpackViewport.getCamera().combined);
@@ -567,16 +596,6 @@ public class GameScreen extends ScreenAdapter {
             goose.drawDebug(shapeRenderer, Color.RED);
         }
         shapeRenderer.end();
-    }
-
-    //Returns the world width in world units.
-    public float getWorldWidth() {
-        return viewport.getWorldWidth();
-    }
-
-    //Returns the world height in world units.
-    public float getWorldHeight() {
-        return viewport.getWorldHeight();
     }
 
     @Override

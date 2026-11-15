@@ -1,36 +1,40 @@
 package io.engproject;
 
 /**
- * This tracks the 5minute survival timer and whether the game is paused.
- * Implements FR_TIMER, FR_START_PAUSED, FR_PAUSE_TOGGLE and FR_WIN_CONDITION
+ * This tracks the 5 minute survival timer and whether the game is paused.
+ * Implements FR_TIMER, FR_START_PAUSED, FR_PAUSE_TOGGLE and FR_WIN_CONDITION.
  */
-
 public class GameTimer {
-    private static final float GAME_LENGTH = 300f; //5 minutes in seconds
+    private static final float GAME_LENGTH = 300f; // 5 minutes in seconds
     private float timeRemaining;
     private boolean paused;
 
+    /** Creates a GameTimer in its resetted state. */
     public GameTimer() {
         reset();
     }
 
-    /**Puts the timer back to 5:00, paused. Used at the start and when the game is completed/restarts */
+    /**
+     * Reverts the timer back to 5:00, and pauses it. Used at the start and when the game
+     * is completed or is restarted.
+     */
     public void reset () {
         timeRemaining = GAME_LENGTH;
         paused = true; //the game starts paused (FR_START_PAUSED)
     }
 
-    /**Counts down by dt seconds, unless paused or finished. */
-    public void update(float dt) {
-        if (paused || isFinished()) {
-            return;
-        }
-        timeRemaining = Math.max(0f, timeRemaining - dt);
+    public float getTimeRemaining() {
+        return timeRemaining;
     }
 
-    /**Pauses the game if itis running, or resumes it if it is paused */
-    public void togglePause() {
-        paused = !paused;
+    /**
+     * Returns the time left (in minutes and seconds) until the player wins.
+     * 
+     * @return the time as format M:SS
+     */
+    public String getFormattedTime() {
+        int totalSeconds = (int) Math.ceil(timeRemaining);
+        return String.format("%d:%02d", totalSeconds / 60, totalSeconds % 60);
     }
 
     public boolean isPaused() {
@@ -41,13 +45,17 @@ public class GameTimer {
         return timeRemaining <= 0;
     }
 
-    /**Returns the time left as M:SS */
-    public String getFormattedTime() {
-        int totalSeconds = (int) Math.ceil(timeRemaining);
-        return String.format("%d:%02d", totalSeconds / 60, totalSeconds % 60);
+    /** Pauses the game if it is running, or resumes it if it is paused. */
+    public void togglePause() {
+        paused = !paused;
     }
 
-    public float getTimeRemaining() {
-        return timeRemaining;
+    /** Counts down by dt seconds, unless paused or finished. */
+    public void update(float dt) {
+        if (paused || isFinished()) {
+            return;
+        }
+
+        timeRemaining = Math.max(0f, timeRemaining - dt);
     }
 }

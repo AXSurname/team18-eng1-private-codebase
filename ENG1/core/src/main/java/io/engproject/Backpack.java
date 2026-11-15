@@ -21,20 +21,21 @@ import java.util.Optional;
  * (the texture may be null for no icon), and a row of numbered slots is drawn beside it.
  * Keys 1-5 select a slot; {@link #useSelectedItem()} uses the item in it.
  * 
- * Bread has a cooldown after use, displaed as a wite traslucent overlay over item in a
- * backpack
+ * Bread has a cooldown after use, displayed as a white translucent overlay over the item in
+ * a backpack.
  *
  * Textures are owned by the screen that created them, not by this class.
  */
 public class Backpack extends GameObject {
     private static final float SCALE = 1/32f;
     public static final int MAX_SLOTS = 5;
-
+    private static final float BREAD_COOLDOWN = 3f;
+    
     // World units, matching the viewport used by GameScreen
     private static final float SLOT_SIZE = 1f;
     private static final float SLOT_PADDING = 0.3f;
     private static final float ICON_INSET = 0.1f;
-    private static final float BREAD_COOLDOWN = 3f;
+    
     private static final Color SELECTED_TINT = Color.YELLOW;
     private static final Color COOLDOWN_OVERLAY = new Color(0f, 0f, 0f, 0.65f);
 
@@ -71,14 +72,14 @@ public class Backpack extends GameObject {
         super(x, y, w, h, texture);
         this.slotTexture = Objects.requireNonNull(slotTexture, "slotTexture");
 
-        // Bread cooldown texture
+        // Create bread cooldown texture
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         whiteTexture = new Texture(pixmap);
         pixmap.dispose();
 
-        // Font
+        // Set font
         this.font = Objects.requireNonNull(font, "font");
         for (int slot = 0; slot < MAX_SLOTS; slot++) {
             slotLabels[slot] = Integer.toString(slot + 1);
@@ -92,9 +93,11 @@ public class Backpack extends GameObject {
      */
     public boolean addItem(Item item) {
         Objects.requireNonNull(item, "item");
+        
         if (isFull()) {
             return false;
         }
+
         items.add(item);
         return true;
     }
@@ -108,6 +111,7 @@ public class Backpack extends GameObject {
         if (slot < 0 || slot >= items.size) {
             return Optional.empty();
         }
+
         return Optional.of(items.removeIndex(slot));
     }
 
@@ -121,6 +125,7 @@ public class Backpack extends GameObject {
         if (slot < 0 || slot >= items.size) {
             return Optional.empty();
         }
+
         return Optional.of(items.get(slot));
     }
 
@@ -128,7 +133,8 @@ public class Backpack extends GameObject {
     public Optional<Item> getSelectedItem() {
         return getItem(selectedSlot);
     }
-        /**
+    
+    /**
      * Uses the item in the selected slot and removes it, but only if it could be used.
      *
      * @return true if an item was used
@@ -136,10 +142,10 @@ public class Backpack extends GameObject {
     public boolean useSelectedItem() {
         Optional<Item> selected = getSelectedItem();
 
-        // Prevent bread from being used during its cooldown
+        // Prevent bread from being used during its cooldown.
         if (selected.isPresent()
-                && selected.get() instanceof BreadItem
-                && cooldownTimer > 0) {
+            && selected.get() instanceof BreadItem
+            && cooldownTimer > 0) {
             return false;
         }
 
@@ -151,14 +157,13 @@ public class Backpack extends GameObject {
                 }
 
             } else if (((BreadItem) selected.get()).use()) {
-                // NEW: Start cooldown after successfully using bread
+                // Start cooldown after successfully using bread.
                 cooldownTimer = BREAD_COOLDOWN;
                 return true;
             }
         }
         return false;
     }
-
 
     public boolean contains(String itemName) {
         for (var item : items) {

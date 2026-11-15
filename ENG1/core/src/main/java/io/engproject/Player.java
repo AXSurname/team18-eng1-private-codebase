@@ -32,14 +32,14 @@ public class Player extends GameObject {
 
     /**
      * Bounds defined by coordinates the player cannot move past.
-     * The elements are in the following order: {minX, maxX, minY, maxY}.
+     * The elements are in the following order: minX, maxX, minY, maxY.
      * */
     private final float[] bounds;
 
     private float boostTimer;
     private float megaphoneTimer;
     private float speedModifier = 1f;
-    private float terrainModifier = 1f;   // puddles; multiplied with the geese slowdown
+    private float terrainModifier = 1f;   // Puddles; multiplied with the geese slowdown
     private float life = LIFE;
     private final PlayerStats stats = new PlayerStats();
     
@@ -71,6 +71,10 @@ public class Player extends GameObject {
         return Math.max(life, 0f);
     }
 
+    public void subLife(float amount) {
+        this.life -= amount;
+    }
+
     public int getItemsUsed() {
         return stats.getItemsUsed();
     }
@@ -91,12 +95,35 @@ public class Player extends GameObject {
         return speedModifier;
     }
 
+    public void applySpeedModifier(float modifier) {
+        terrainModifier = modifier;
+    }
+
+    /**
+     * Checks if the player can interact by updating and
+     * checking the interaction cooldown timer.
+     *
+     * @param dt the amount of time passed from last frame
+     * @return true if the cooldown has expired, false otherwise
+     */
+    public boolean getCanInteract() {
+        if (interactTimer <= 0) {
+            return true;
+        }
+        return false;
+    }
+
     public boolean isAlive() {
         return life > 0f;
     }
 
     public void setIsThrowingBread(boolean bool) {
         isThrowingBread = bool;
+    }
+
+    // Called every frame with the number of geese overlapping the player
+    public void setGeeseTouching(int count) {
+        speedModifier = Math.max(MIN_SPEED_MODIFIER, (float) Math.pow(SLOW_PER_GOOSE, count));
     }
 
     /**
@@ -135,20 +162,6 @@ public class Player extends GameObject {
 
         // Move player
         move(dt);
-    }
-
-    /**
-     * Checks if the player can interact by updating and
-     * checking the interaction cooldown timer.
-     *
-     * @param dt the amount of time passed from last frame
-     * @return true if the cooldown has expired, false otherwise
-     */
-    public boolean getCanInteract() {
-        if (interactTimer <= 0) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -199,25 +212,16 @@ public class Player extends GameObject {
         }
 
         batch.draw(texture,
-            rect.x, rect.y,                 //postion
-            rect.width / 2f, rect.height / 2f, //rotate aroudn the centre
-            rect.width, rect.height,        // size
-            1f, 1f,                            // scale
-            lastDirection.angleDeg(),       // rotation in degrees
-            0, 0, texture.getWidth(), texture.getHeight(), // use the whole img
-            false, false);                                 //no flipping
+            rect.x, rect.y,                     // Postion
+            rect.width / 2f, rect.height / 2f,  // Rotate around the centre
+            rect.width, rect.height,            // Size
+            1f, 1f,              // Scale
+            lastDirection.angleDeg(),           // Rotation in degrees
+            0, 0, texture.getWidth(), texture.getHeight(), // Uses the whole image
+            false, false);                               // Disables flipped images
     }
 
-    // Called every frame with the number of geese overlapping the player
-    public void setGeeseTouching(int count) {
-        speedModifier = Math.max(MIN_SPEED_MODIFIER, (float) Math.pow(SLOW_PER_GOOSE, count));
-    }
-
-    public void subLife(float amount) {
-        this.life -= amount;
-    }
-
-    // Called by BreadItem: allows player to feed geese with infinite bread
+    /** Is called by {@link BreadItem}: allows the player to feed the geese with bread. */
     public void startThrowBread() {
         var playerCentre = getCentre(TMP_VEC2);
         interactions.add(new BreadInteraction(playerCentre, lastDirection, interactAnimation));
@@ -225,6 +229,12 @@ public class Player extends GameObject {
         interactTimer = INTERACT_COOLDOWN;
     }
 
+    /**
+     * Decreases the lifespan of the bread-throwing interaction and animation, and
+     * stops the interaction if it is complete.
+     * 
+     * @param dt deltatime
+     */
     private void updateThrowBread(float dt) {
         var iterator = interactions.iterator();
         
@@ -239,7 +249,10 @@ public class Player extends GameObject {
         }
     }
 
-    // Called by EnergyDrinkItem: double speed for 5 seconds
+    /**
+     * Is called by {@link EnergyDrinkItem}: doubles the player's speed for
+     * {@value #BOOST_DURATION}.
+     */
     public void activateBoost() {
         boostTimer = BOOST_DURATION;
     }
@@ -248,11 +261,10 @@ public class Player extends GameObject {
         return boostTimer > 0f;
     }
 
-    public void applySpeedModifier(float modifier) {
-        terrainModifier = modifier;
-    }
-
-    // Called by MegaphoneItem: scares geese away for 5 seconds
+    /**
+     * Is called by {@link MegaphoneItem}: scares geese away from the player for
+     * {@value #MEGAPHONE_DURATION}. 
+     */
     public void activateMegaphone() {
         megaphoneTimer = MEGAPHONE_DURATION;
     }

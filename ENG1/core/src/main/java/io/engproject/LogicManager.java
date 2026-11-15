@@ -9,26 +9,26 @@ import com.badlogic.gdx.math.MathUtils;
  */
 public class LogicManager {
     private static final float GOOSE_SPAWN_INTERVAL = 2f;
-    private static final int MAX_GEESE = 15;   // no new geese spawn while this many are active
+    private static final int MAX_GEESE = 15;   // No new geese spawn while this many are active
     private static final float DAMAGE_PER_SEC = 1f;
 
-    //Time between spawn of items.
-    private static final float PICKUP_SPAWN_INTERVAL = 15f; // Inverval between item spawns in seconds
-    
-    // Energy drinks the backpack starts each run with, until the team decides how
-    // items should appear (pickups via spawnItem() or a starting stock)
+    // Interval time between spawn of items (in seconds).
+    private static final float PICKUP_SPAWN_INTERVAL = 15f;
+
+    // The number of energy drinks and megaphones the player starts with when the game
+    // starts or resets.
     private static final int STARTING_ENERGY_DRINKS = 2;
     private static final int STARTING_MEGAPHONES = 1;
 
-    // Puddles: new hidden puddles appear over time, up to a cap
-    private static final float PUDDLE_SPAWN_INTERVAL = 20f; // seconds between new puddles (lower = more)
-    private static final int MAX_PUDDLES = 8;               // no new puddles while this many exist
-    private static final int STARTING_PUDDLES = 2;          // fixed puddles created by GameScreen
+    // Puddles: new hidden puddles appear over time, up to a cap.
+    private static final float PUDDLE_SPAWN_INTERVAL = 20f; // Seconds between new puddles (lower = more)
+    private static final int MAX_PUDDLES = 8;               // No new puddles while this many exist
+    private static final int STARTING_PUDDLES = 2;          // Fixed puddles created by GameScreen
 
     private static final float BOSS_SPAWN_TIME = 60f;
-    private static final float EVENT_MESSAGE_TIME = 3f;   // seconds an event message stays on screen
-    private boolean bossSpawned = false;
+    private static final float EVENT_MESSAGE_TIME = 3f;   // Seconds an event message stays on screen
 
+    private boolean bossSpawned = false;
     private float bossSpawnTimer;
     private float gooseSpawnTimer;
     private String eventMessage;
@@ -96,6 +96,7 @@ public class LogicManager {
         itemPickups.clear();
         backpack.clear();
 
+        // Adds initial items to inventory.
         backpack.addItem(game.getBread());
         for (int i = 0; i < STARTING_ENERGY_DRINKS; i++) {
             backpack.addItem(game.getEnergyDrink());
@@ -113,7 +114,7 @@ public class LogicManager {
         puddleSpawnTimer = 0f;
 
         // Remove puddles spawned during the last run, and hide the starting ones again
-        // so they can be rediscovered (and trigger the splash event) after a restart
+        // so they can be rediscovered (and trigger the splash event) after a restart.
         puddles.truncate(STARTING_PUDDLES);
         for (Puddle puddle : puddles) {
             puddle.setIsVisible(false);
@@ -121,76 +122,7 @@ public class LogicManager {
         }
     }
 
-    /** Calculates whether another goose should be spawned, and spawns it if so. */
-    private void spawnGoose() {
-        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && geese.size < MAX_GEESE) {
-            gooseSpawnTimer = 0f;
-
-            Goose goose = game.getGoose();
-            geese.add(goose);
-        }
-    }
-
-    /**
-     * Makes a Goose friendly if its Rectangle collides with an Interaction's Rectangle,
-     * and decreases the Players's health if a Goose's Rectangle collides with the
-     * Player's.
-     * 
-     * @param dt deltatime
-     */
-    private void checkCollision(float dt) {
-        for (Interaction interaction : player.getInteractions()) {
-            var iterator = geese.iterator();
-
-            while (iterator.hasNext()) {
-                Goose next = iterator.next();
-
-                if (interaction.overlaps(next)) {
-                    next.makeFriendly(game.getFriendlyGooseTexture());
-                }
-            }
-        }
-
-        int hitNum = 0;
-
-        for (Goose goose : geese) {
-            if (!goose.isFriendly() && player.overlaps(goose)) {
-                ++hitNum;
-            }
-        }
-
-        player.setGeeseTouching(hitNum);   // Modifies player speed
-                                            // (Each goose touching slows player)
-
-        if (hitNum > 0) {
-            player.subLife(DAMAGE_PER_SEC * hitNum * dt);
-        }
-
-        for (Puddle puddle : puddles) {
-            boolean playerOverlapsPuddle = player.overlaps(puddle);
-
-            if (playerOverlapsPuddle && !puddle.isPlayerInside()) {
-                if (!puddle.getIsVisible()) {
-                    puddle.setIsVisible(true);
-
-                    player.eventTriggered();
-                    showEventMessage("SPLASH! A PUDDLE SLOWS YOU DOWN");
-                }
-            }
-
-            puddle.setPlayerInside(playerOverlapsPuddle);
-        }
-
-        for (int i = itemPickups.size - 1; i >= 0; i--) {
-            ItemPickup pickup = itemPickups.get(i);
-
-            if (player.overlaps(pickup) && backpack.addItem(pickup.getItem())) {
-                itemPickups.removeIndex(i);
-            }
-        }
-    }
-
-    // To be implemented as needed
+    /** Checks if an event has been triggered, and starts it if so. */
     private void startEvent() 
     {
         if (!bossSpawned && bossSpawnTimer >= BOSS_SPAWN_TIME) {
@@ -213,7 +145,8 @@ public class LogicManager {
         }
 
         // Geese are slowed by puddles the same amount as the player, including hidden ones.
-        // They don't reveal puddles or trigger the splash message (only the player does, in checkCollision).
+        // They don't reveal puddles or trigger the splash message (only the player does,
+        // in checkCollision).
         for (Goose goose : geese) {
             goose.applySpeedModifier(1f);
             for (Puddle puddle : puddles) {
@@ -224,8 +157,7 @@ public class LogicManager {
         }
     }
     
-
-    // Spawns a random item pickup if the spawn timer has elapsed.
+    /** Spawns a random item pickup if the spawn timer has elapsed. */
     private void spawnItem() {
         if (pickupSpawnTimer >= PICKUP_SPAWN_INTERVAL)
         {
@@ -237,7 +169,8 @@ public class LogicManager {
             float rndX = MathUtils.random(0f, game.getWorldWidth() - ItemPickup.SIZE);
             float rndY = MathUtils.random(0f, game.getWorldHeight() - ItemPickup.SIZE);
 
-            if (itemSpawnChance < 75f) { // 75% Chance to spawn an energy drink.
+            // 75% Chance to spawn an energy drink.
+            if (itemSpawnChance < 75f) {
                 Item item = game.getEnergyDrink();
                 itemPickups.add(game.getPickup(rndX, rndY, item));
             }
@@ -249,10 +182,11 @@ public class LogicManager {
         }
     }
 
-
-    // Spawns a new hidden puddle at a random spot if the spawn timer has elapsed
-    // and the cap hasn't been reached. Skips spots under the player so they
-    // aren't slowed by a puddle appearing beneath them.
+    /**
+     * Spawns a new hidden puddle at a random spot if the spawn timer has elapsed
+     * and the cap hasn't been reached. Skips spots under the player so they
+     * aren't slowed by a puddle appearing beneath them.
+     */
     private void spawnPuddle() {
         if (puddleSpawnTimer < PUDDLE_SPAWN_INTERVAL || puddles.size >= MAX_PUDDLES) {
             return;
@@ -263,13 +197,85 @@ public class LogicManager {
         Puddle puddle = game.getPuddle(rndX, rndY);
 
         if (player.overlaps(puddle)) {
-            return;   // try again next frame with a new random spot
+            return;   // Try again next frame with a new random spot
         }
 
         puddleSpawnTimer = 0f;
         puddles.add(puddle);
     }
 
+    /** Calculates whether another goose should be spawned, and spawns it if so. */
+    private void spawnGoose() {
+        if (gooseSpawnTimer > GOOSE_SPAWN_INTERVAL && geese.size < MAX_GEESE) {
+            gooseSpawnTimer = 0f;
+
+            Goose goose = game.getGoose();
+            geese.add(goose);
+        }
+    }
+
+    /**
+     * Makes a Goose friendly if its Rectangle collides with an Interaction's Rectangle,
+     * and decreases the Players's health if a Goose's Rectangle collides with the
+     * Player's.
+     * 
+     * @param dt deltatime
+     */
+    private void checkCollision(float dt) {
+        // Make geese friendly if collide with interaction.
+        for (Interaction interaction : player.getInteractions()) {
+            var iterator = geese.iterator();
+
+            while (iterator.hasNext()) {
+                Goose next = iterator.next();
+
+                if (interaction.overlaps(next)) {
+                    next.makeFriendly(game.getFriendlyGooseTexture());
+                }
+            }
+        }
+
+        // Decrease player health and speed if player collides with any geese.
+        int hitNum = 0;
+
+        for (Goose goose : geese) {
+            if (!goose.isFriendly() && player.overlaps(goose)) {
+                ++hitNum;
+            }
+        }
+
+        player.setGeeseTouching(hitNum);   // Modifies player speed
+                                           // (Each goose touching slows player)
+
+        if (hitNum > 0) {
+            player.subLife(DAMAGE_PER_SEC * hitNum * dt);
+        }
+
+        // Decrease player speed if collision with any puddles.
+        for (Puddle puddle : puddles) {
+            boolean playerOverlapsPuddle = player.overlaps(puddle);
+
+            if (playerOverlapsPuddle && !puddle.isPlayerInside()) {
+                if (!puddle.getIsVisible()) {
+                    puddle.setIsVisible(true);
+
+                    player.eventTriggered();
+                    showEventMessage("SPLASH! A PUDDLE SLOWS YOU DOWN");
+                }
+            }
+
+            puddle.setPlayerInside(playerOverlapsPuddle);
+        }
+
+        // Item pickup logic.
+        for (int i = itemPickups.size - 1; i >= 0; i--) {
+            ItemPickup pickup = itemPickups.get(i);
+
+            if (player.overlaps(pickup) && backpack.addItem(pickup.getItem())) {
+                itemPickups.removeIndex(i);
+            }
+        }
+    }
 
     /**
      * Updates the game state by ticking timers, as well as updating players, geese
@@ -300,6 +306,7 @@ public class LogicManager {
         spawnPuddle();
     }
 
+    /** Prevents geese from overlapping each other on the map as they chase the player. */
     private void separateGeese() {
         for (int pass = 0; pass < 3; pass++) {
             for (int i = 0; i < geese.size; i++) {
@@ -313,5 +320,4 @@ public class LogicManager {
             }
         }
     }
-
 }

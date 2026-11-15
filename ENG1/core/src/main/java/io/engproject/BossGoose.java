@@ -4,24 +4,24 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * A Boss Goose that cases the player.
+ * A boss goose is a larger and slower {@link Goose} that needs to be evaded as it
+ * chases the player.
  *
- * A Boss Goose is a {@link Goose} that follows the player's center at a 
- * constant speed.
- * When megaphone is used, the Boss Goose moves away from the player.
+ * It moves away from the player for some time when it has either been fed bread and
+ * becomes friendly, or has been scared with the megaphone. When angry, it follows the
+ * player's centre at an increasing speed as the game progresses.
  *
  * The size of the Boss Goose is scaled with {@value #SCALE}, movement
  * speed is defined by {@value #SPEED}.
  *
- *Textures are owned by the screen that created them, not by this class.
+ * Textures are owned by the screen that created them, not by this class.
  */
-
 public class BossGoose extends Goose {
     private static final float SCALE = 1/16f;
     private static final float SPEED = 0.5f;
 
     /**
-     * Created a Boss Goos at the given position.
+     * Created a boss goose at the given position.
      * 
      * @param x           the initial x-coordinates
      * @param y           the initial y-coordinates
@@ -36,10 +36,10 @@ public class BossGoose extends Goose {
     /**
      * Updates Boss Goose's position based on player's position.
      * 
-     * Boss Goose moves towards the player unless the megaphone is active.
+     * Boss Goose moves towards the player unless the megaphone is active or has been fed.
      * If megaphone is active, Boss Goose moves away fromt the player.
      *
-     * @param dt         time since the last update
+     * @param dt time since the last update
      */
     @Override
     public void update(float dt) {
@@ -48,7 +48,7 @@ public class BossGoose extends Goose {
         }
 
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
-        Vector2 direction = this.getPlayer().rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * getTerrainModifier() * dt);
+        Vector2 direction = this.getPlayer().rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(getCurrentSpeed() * getTerrainModifier() * dt);
         if (isFriendly() || this.getPlayer().megaphoneActive()) {
             // Move away from player centre
             direction.scl(-1);

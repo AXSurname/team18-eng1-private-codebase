@@ -5,15 +5,24 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/** An enemy for the player to evade. */
+/**
+ * A goose that needs to be evaded as it chases the player.
+ * 
+ * It moves away from the player for {@value #FEEDING_DURATION} seconds when it
+ * has either been fed bread and becomes friendly, or has been scared with the
+ * megaphone. When angry, it follows the player's centre at an increasing speed
+ * as the game progresses.
+ * 
+ * Textures are owned by the screen that created them, not by this class.
+*/
 public class Goose extends GameObject {
-    private final GameTimer gameTimer;
     private static final float SCALE = 1/32f;
     private static final float STARTING_SPEED = 0.7f;
     private static final float MAX_SPEED = 2.0f;
     private static final float FEEDING_DURATION = 3f;
     
     private final Player player;
+    private final GameTimer gameTimer;
     private final Texture angryGooseTexture;
     private boolean friendly;
     private float feedingTimer;
@@ -21,7 +30,7 @@ public class Goose extends GameObject {
     private float terrainModifier = 1f;   // Multiplies speed, e.g. 0.5 while in a puddle
 
     /**
-     * Creates a Goose.
+     * Creates a Goose that needs to be evaded as it chases the player.
      * 
      * @param x       the initial x-position of the goose
      * @param y       the initial y-position of the goose
@@ -37,6 +46,24 @@ public class Goose extends GameObject {
 
     public Player getPlayer() {
         return player;
+    }
+
+    protected float getCurrentSpeed() {
+        float passedTime = 300f - gameTimer.getTimeRemaining();
+        float progress = MathUtils.clamp(passedTime/300f, 0f, 1f);
+        return STARTING_SPEED + (MAX_SPEED - STARTING_SPEED) * progress;
+    }
+  
+    /**
+     * Sets the terrain speed multiplier (1 = normal, e.g. a puddle's modifier while
+     * inside one).
+     * */
+    public void applySpeedModifier(float modifier) {
+        terrainModifier = modifier;
+    }
+
+    protected float getTerrainModifier() {
+        return terrainModifier;
     }
 
     /**
@@ -59,51 +86,24 @@ public class Goose extends GameObject {
         return friendly;
     }
 
-    public float currentSpeed() {
-        float passedTime = 300f - gameTimer.getTimeRemaining();
-        float progress = MathUtils.clamp(passedTime/300f, 0f, 1f);
-        return STARTING_SPEED + (MAX_SPEED - STARTING_SPEED) * progress;
-    }
-  
-    /** Sets the terrain speed multiplier (1 = normal, e.g. a puddle's modifier while inside one). */
-    public void applySpeedModifier(float modifier) {
-        terrainModifier = modifier;
-    }
+    /**
+     * Updates whether a goose has been fed recently and returns if a goose should
+     * move this frame.
+     *
+     * @param dt deltatime
+     * @return {@code false} while the goose has been fed recently
+     */
+    protected boolean isFeeding(float dt) {
+        if (!friendly) {
+            return true;
+        }
 
-    protected float getTerrainModifier() {
-        return terrainModifier;
-    }
-
-    public void separate(Goose other) {
-    if (!overlaps(other)) {
-        return;
-    }
-
-    float pushX;
-    float pushY;
-
-    if (rect.x < other.rect.x) {
-        pushX = -0.01f;
-    }   
-    else {
-    pushX = 0.01f;
-    }
-
-    if (rect.y < other.rect.y) {
-        pushY = -0.01f;
-    }
-    else {
-        pushY = 0.01f;
-    }
-
-    rect.x += pushX;
-    rect.y += pushY;
-    other.rect.x -= pushX;
-    other.rect.y -= pushY;
-}
-
-    public boolean isOverlapping() {
-        return isOverlapping;
+        feedingTimer -= dt;
+        if (feedingTimer <= 0f) {
+            friendly = false;
+            texture = angryGooseTexture;
+        }
+        return false;
     }
 
     /**
@@ -117,11 +117,9 @@ public class Goose extends GameObject {
             return;
         }
 
-
-
         Vector2 gooseCentre = new Vector2(rect.x + rect.width/2, rect.y + rect.height/2);
-        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor().scl(currentSpeed() * terrainModifier * dt);
-
+        Vector2 direction = player.rect.getCenter(TMP_VEC2).sub(gooseCentre).nor()
+                                  .scl(getCurrentSpeed() * terrainModifier * dt);
 
         if (player.megaphoneActive()) {
             // Move away from player centre.
@@ -131,22 +129,38 @@ public class Goose extends GameObject {
     }
 
     /**
-     * Updates feeding and returns if a goose should move this frame.
-     *
-     * @param dt deltatime
-     * @return false while the goose is feeding
+     * Prevents geese from overlapping each other on the map.
+     * 
+     * @param other some other goose
      */
-    protected boolean isFeeding(float dt) {
-        if (!friendly) {
-            return true;
+    public void separate(Goose other) {
+        if (!overlaps(other)) {
+            return;
         }
 
-        feedingTimer -= dt;
-        if (feedingTimer <= 0f) {
-            friendly = false;
-            texture = angryGooseTexture;
+        float pushX;
+        float pushY;
+
+        if (rect.x < other.rect.x) {
+            pushX = -0.01f;
+        } else {
+            pushX = 0.01f;
         }
-        return false;
+
+        if (rect.y < other.rect.y) {
+            pushY = -0.01f;
+        } else {
+            pushY = 0.01f;
+        }
+
+        rect.x += pushX;
+        rect.y += pushY;
+        other.rect.x -= pushX;
+        other.rect.y -= pushY;
+    }
+
+    public boolean isOverlapping() {
+        return isOverlapping;
     }
 
     /**
@@ -195,8 +209,6 @@ public class Goose extends GameObject {
                 y = camY + viewport.getWorldHeight() * (MathUtils.random(0f, 1f)-0.5f);
         }
         
-        return new float[]{x, y};
+        return new float[] {x, y};
     }
-
-    
 }

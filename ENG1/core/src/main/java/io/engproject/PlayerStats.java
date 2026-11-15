@@ -1,12 +1,15 @@
 package io.engproject;
 
-public class PlayerStats 
-{
+/**
+ * Stores the player's statistics: the number of items used and the number of
+ * events that have been triggered.
+ */
+public class PlayerStats {
     private int itemsUsed;
     private int eventsTriggered;
 
-    public PlayerStats() 
-    {
+    /** Creates a class storing the player's statistics. */
+    public PlayerStats() {
         this.itemsUsed = 0;
         this.eventsTriggered = 0;
     }

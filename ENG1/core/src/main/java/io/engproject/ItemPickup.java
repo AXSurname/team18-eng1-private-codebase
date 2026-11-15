@@ -1,7 +1,6 @@
 package io.engproject;
 
-
-//Represents a pickup item in the game.
+/** Represents an item that can be picked up by the player in the game. */
 public class ItemPickup extends GameObject {
     static final float SIZE = 0.5f;   
     private final Item item;

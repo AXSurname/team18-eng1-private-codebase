@@ -36,7 +36,7 @@ public class GameManager extends Game {
         setScreen(new TutorialScreen(this));
     }
 
-    /** Instantiates GameManager.font */
+    /** Instantiates {@link GameManager#font} */
     private void createFont() {
         var fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(FONT_PATH));
         var fontParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
